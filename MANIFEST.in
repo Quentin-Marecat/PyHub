@@ -1,0 +1,13 @@
+include MANIFEST.in
+include README.md pyproject.toml setup.py CHANGELOG LICENSE
+
+global-exclude *.py[cod]
+prune pyhub/libs/build
+
+# MacOS dynamic libraries
+include pyhub/libs/*.dylib
+
+# Source code
+prune pyhub/libs/build
+recursive-include pyhub/libs *.c *.h CMakeLists.txt
+recursive-exclude pyhub/libs *.cl
