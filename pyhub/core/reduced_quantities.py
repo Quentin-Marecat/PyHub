@@ -1,6 +1,6 @@
 import numpy as np 
 import h5py
-from pole import Pole
+from pyhub.tools.pole import Pole
 from scipy.misc import derivative
 
 class StaticQuantities():
