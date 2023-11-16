@@ -3,7 +3,7 @@
 
 PyHub is an easy-to-use, hybrid Python/Fortran package to solve efficiently the Fermi-Hubbard Model
 
-# Installation
+Installation
 ------------
 
 To install, clone the repository
@@ -23,7 +23,7 @@ Quickstart
 
 Examples of how to use PyHub can be found in the `pyhub/examples` directory.
 
-# Authors
+Authors
 ----------
 
 Q. Marécat
