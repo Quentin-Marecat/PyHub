@@ -1,0 +1,6 @@
+/home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs/CMakeFiles/edit_cache.dir
+/home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs/CMakeFiles/rebuild_cache.dir
+/home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs/src/CMakeFiles/basis.x.dir
+/home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs/src/CMakeFiles/hubbard.x.dir
+/home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs/src/CMakeFiles/edit_cache.dir
+/home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs/src/CMakeFiles/rebuild_cache.dir

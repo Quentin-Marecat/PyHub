@@ -1,6 +1,5 @@
 SUBROUTINE HPROD(V,V2)
-    USE COMMOD
-    USE HUBMOD
+    USE BASISMOD
     ! ------------------------------------------- !
     ! --- COMPUTE THE APPLICATION OF H OVER V --- !
     ! ------------------------------------------- !
@@ -16,7 +15,7 @@ END SUBROUTINE
 
 
 SUBROUTINE HPROD_(V,V1)
-    USE COMMOD
+    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     ! --- MUCH SLOWER THAN HPROD
@@ -211,7 +210,7 @@ END SUBROUTINE
 
 
 SUBROUTINE TPROD(V,V1)
-    USE COMMOD
+    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE
@@ -274,7 +273,7 @@ END subroutine TPROD
 
 
 SUBROUTINE UPROD(V,V1)
-    USE COMMOD
+    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE
@@ -343,7 +342,7 @@ END subroutine UPROD
 
 
 SUBROUTINE JPROD(V,V1)
-    USE COMMOD
+    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE

@@ -85,51 +85,6 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 .PHONY : rebuild_cache/fast
 
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
-
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
-.PHONY : list_install_components/fast
-
-# Special rule for the target install
-install: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install
-
-# Special rule for the target install
-install/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/usr/bin/cmake -P cmake_install.cmake
-.PHONY : install/fast
-
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
-
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip/fast
-
 # The main all target
 all: cmake_check_build_system
 	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(CMAKE_COMMAND) -E cmake_progress_start /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs/CMakeFiles /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs/src//CMakeFiles/progress.marks
@@ -162,25 +117,40 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
-src/CMakeFiles/main.x.dir/rule:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/main.x.dir/rule
-.PHONY : src/CMakeFiles/main.x.dir/rule
+src/CMakeFiles/basis.x.dir/rule:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/basis.x.dir/rule
+.PHONY : src/CMakeFiles/basis.x.dir/rule
 
 # Convenience name for target.
-main.x: src/CMakeFiles/main.x.dir/rule
-.PHONY : main.x
+basis.x: src/CMakeFiles/basis.x.dir/rule
+.PHONY : basis.x
 
 # fast build rule for target.
-main.x/fast:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/build
-.PHONY : main.x/fast
+basis.x/fast:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/build
+.PHONY : basis.x/fast
+
+# Convenience name for target.
+src/CMakeFiles/hubbard.x.dir/rule:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/hubbard.x.dir/rule
+.PHONY : src/CMakeFiles/hubbard.x.dir/rule
+
+# Convenience name for target.
+hubbard.x: src/CMakeFiles/hubbard.x.dir/rule
+.PHONY : hubbard.x
+
+# fast build rule for target.
+hubbard.x/fast:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/build
+.PHONY : hubbard.x/fast
 
 basis.o: basis.f90.o
 .PHONY : basis.o
 
 # target to build an object file
 basis.f90.o:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/basis.f90.o
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/basis.f90.o
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/basis.f90.o
 .PHONY : basis.f90.o
 
 basis.i: basis.f90.i
@@ -188,7 +158,8 @@ basis.i: basis.f90.i
 
 # target to preprocess a source file
 basis.f90.i:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/basis.f90.i
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/basis.f90.i
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/basis.f90.i
 .PHONY : basis.f90.i
 
 basis.s: basis.f90.s
@@ -196,15 +167,43 @@ basis.s: basis.f90.s
 
 # target to generate assembly for a file
 basis.f90.s:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/basis.f90.s
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/basis.f90.s
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/basis.f90.s
 .PHONY : basis.f90.s
+
+basismod.o: basismod.f90.o
+.PHONY : basismod.o
+
+# target to build an object file
+basismod.f90.o:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/basismod.f90.o
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/basismod.f90.o
+.PHONY : basismod.f90.o
+
+basismod.i: basismod.f90.i
+.PHONY : basismod.i
+
+# target to preprocess a source file
+basismod.f90.i:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/basismod.f90.i
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/basismod.f90.i
+.PHONY : basismod.f90.i
+
+basismod.s: basismod.f90.s
+.PHONY : basismod.s
+
+# target to generate assembly for a file
+basismod.f90.s:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/basismod.f90.s
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/basismod.f90.s
+.PHONY : basismod.f90.s
 
 boltzmann.o: boltzmann.f90.o
 .PHONY : boltzmann.o
 
 # target to build an object file
 boltzmann.f90.o:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/boltzmann.f90.o
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/boltzmann.f90.o
 .PHONY : boltzmann.f90.o
 
 boltzmann.i: boltzmann.f90.i
@@ -212,7 +211,7 @@ boltzmann.i: boltzmann.f90.i
 
 # target to preprocess a source file
 boltzmann.f90.i:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/boltzmann.f90.i
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/boltzmann.f90.i
 .PHONY : boltzmann.f90.i
 
 boltzmann.s: boltzmann.f90.s
@@ -220,15 +219,39 @@ boltzmann.s: boltzmann.f90.s
 
 # target to generate assembly for a file
 boltzmann.f90.s:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/boltzmann.f90.s
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/boltzmann.f90.s
 .PHONY : boltzmann.f90.s
+
+compute_basis.o: compute_basis.f90.o
+.PHONY : compute_basis.o
+
+# target to build an object file
+compute_basis.f90.o:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/compute_basis.f90.o
+.PHONY : compute_basis.f90.o
+
+compute_basis.i: compute_basis.f90.i
+.PHONY : compute_basis.i
+
+# target to preprocess a source file
+compute_basis.f90.i:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/compute_basis.f90.i
+.PHONY : compute_basis.f90.i
+
+compute_basis.s: compute_basis.f90.s
+.PHONY : compute_basis.s
+
+# target to generate assembly for a file
+compute_basis.f90.s:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/compute_basis.f90.s
+.PHONY : compute_basis.f90.s
 
 diagmat.o: diagmat.f90.o
 .PHONY : diagmat.o
 
 # target to build an object file
 diagmat.f90.o:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/diagmat.f90.o
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/diagmat.f90.o
 .PHONY : diagmat.f90.o
 
 diagmat.i: diagmat.f90.i
@@ -236,7 +259,7 @@ diagmat.i: diagmat.f90.i
 
 # target to preprocess a source file
 diagmat.f90.i:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/diagmat.f90.i
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/diagmat.f90.i
 .PHONY : diagmat.f90.i
 
 diagmat.s: diagmat.f90.s
@@ -244,7 +267,7 @@ diagmat.s: diagmat.f90.s
 
 # target to generate assembly for a file
 diagmat.f90.s:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/diagmat.f90.s
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/diagmat.f90.s
 .PHONY : diagmat.f90.s
 
 exact_diag.o: exact_diag.f90.o
@@ -252,7 +275,7 @@ exact_diag.o: exact_diag.f90.o
 
 # target to build an object file
 exact_diag.f90.o:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/exact_diag.f90.o
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/exact_diag.f90.o
 .PHONY : exact_diag.f90.o
 
 exact_diag.i: exact_diag.f90.i
@@ -260,7 +283,7 @@ exact_diag.i: exact_diag.f90.i
 
 # target to preprocess a source file
 exact_diag.f90.i:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/exact_diag.f90.i
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/exact_diag.f90.i
 .PHONY : exact_diag.f90.i
 
 exact_diag.s: exact_diag.f90.s
@@ -268,15 +291,42 @@ exact_diag.s: exact_diag.f90.s
 
 # target to generate assembly for a file
 exact_diag.f90.s:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/exact_diag.f90.s
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/exact_diag.f90.s
 .PHONY : exact_diag.f90.s
+
+funcmod.o: funcmod.f90.o
+.PHONY : funcmod.o
+
+# target to build an object file
+funcmod.f90.o:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/funcmod.f90.o
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/funcmod.f90.o
+.PHONY : funcmod.f90.o
+
+funcmod.i: funcmod.f90.i
+.PHONY : funcmod.i
+
+# target to preprocess a source file
+funcmod.f90.i:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/funcmod.f90.i
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/funcmod.f90.i
+.PHONY : funcmod.f90.i
+
+funcmod.s: funcmod.f90.s
+.PHONY : funcmod.s
+
+# target to generate assembly for a file
+funcmod.f90.s:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/basis.x.dir/build.make src/CMakeFiles/basis.x.dir/funcmod.f90.s
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/funcmod.f90.s
+.PHONY : funcmod.f90.s
 
 hprod.o: hprod.f90.o
 .PHONY : hprod.o
 
 # target to build an object file
 hprod.f90.o:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/hprod.f90.o
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/hprod.f90.o
 .PHONY : hprod.f90.o
 
 hprod.i: hprod.f90.i
@@ -284,7 +334,7 @@ hprod.i: hprod.f90.i
 
 # target to preprocess a source file
 hprod.f90.i:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/hprod.f90.i
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/hprod.f90.i
 .PHONY : hprod.f90.i
 
 hprod.s: hprod.f90.s
@@ -292,15 +342,63 @@ hprod.s: hprod.f90.s
 
 # target to generate assembly for a file
 hprod.f90.s:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/hprod.f90.s
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/hprod.f90.s
 .PHONY : hprod.f90.s
+
+hubbard.o: hubbard.f90.o
+.PHONY : hubbard.o
+
+# target to build an object file
+hubbard.f90.o:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/hubbard.f90.o
+.PHONY : hubbard.f90.o
+
+hubbard.i: hubbard.f90.i
+.PHONY : hubbard.i
+
+# target to preprocess a source file
+hubbard.f90.i:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/hubbard.f90.i
+.PHONY : hubbard.f90.i
+
+hubbard.s: hubbard.f90.s
+.PHONY : hubbard.s
+
+# target to generate assembly for a file
+hubbard.f90.s:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/hubbard.f90.s
+.PHONY : hubbard.f90.s
+
+hubmod.o: hubmod.f90.o
+.PHONY : hubmod.o
+
+# target to build an object file
+hubmod.f90.o:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/hubmod.f90.o
+.PHONY : hubmod.f90.o
+
+hubmod.i: hubmod.f90.i
+.PHONY : hubmod.i
+
+# target to preprocess a source file
+hubmod.f90.i:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/hubmod.f90.i
+.PHONY : hubmod.f90.i
+
+hubmod.s: hubmod.f90.s
+.PHONY : hubmod.s
+
+# target to generate assembly for a file
+hubmod.f90.s:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/hubmod.f90.s
+.PHONY : hubmod.f90.s
 
 lanczos.o: lanczos.f90.o
 .PHONY : lanczos.o
 
 # target to build an object file
 lanczos.f90.o:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/lanczos.f90.o
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/lanczos.f90.o
 .PHONY : lanczos.f90.o
 
 lanczos.i: lanczos.f90.i
@@ -308,7 +406,7 @@ lanczos.i: lanczos.f90.i
 
 # target to preprocess a source file
 lanczos.f90.i:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/lanczos.f90.i
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/lanczos.f90.i
 .PHONY : lanczos.f90.i
 
 lanczos.s: lanczos.f90.s
@@ -316,87 +414,39 @@ lanczos.s: lanczos.f90.s
 
 # target to generate assembly for a file
 lanczos.f90.s:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/lanczos.f90.s
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/lanczos.f90.s
 .PHONY : lanczos.f90.s
 
-mainf.o: mainf.f90.o
-.PHONY : mainf.o
+solve_hubbard.o: solve_hubbard.f90.o
+.PHONY : solve_hubbard.o
 
 # target to build an object file
-mainf.f90.o:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/mainf.f90.o
-.PHONY : mainf.f90.o
+solve_hubbard.f90.o:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/solve_hubbard.f90.o
+.PHONY : solve_hubbard.f90.o
 
-mainf.i: mainf.f90.i
-.PHONY : mainf.i
-
-# target to preprocess a source file
-mainf.f90.i:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/mainf.f90.i
-.PHONY : mainf.f90.i
-
-mainf.s: mainf.f90.s
-.PHONY : mainf.s
-
-# target to generate assembly for a file
-mainf.f90.s:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/mainf.f90.s
-.PHONY : mainf.f90.s
-
-mods.o: mods.f90.o
-.PHONY : mods.o
-
-# target to build an object file
-mods.f90.o:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/mods.f90.o
-.PHONY : mods.f90.o
-
-mods.i: mods.f90.i
-.PHONY : mods.i
+solve_hubbard.i: solve_hubbard.f90.i
+.PHONY : solve_hubbard.i
 
 # target to preprocess a source file
-mods.f90.i:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/mods.f90.i
-.PHONY : mods.f90.i
+solve_hubbard.f90.i:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/solve_hubbard.f90.i
+.PHONY : solve_hubbard.f90.i
 
-mods.s: mods.f90.s
-.PHONY : mods.s
-
-# target to generate assembly for a file
-mods.f90.s:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/mods.f90.s
-.PHONY : mods.f90.s
-
-solve.o: solve.f90.o
-.PHONY : solve.o
-
-# target to build an object file
-solve.f90.o:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/solve.f90.o
-.PHONY : solve.f90.o
-
-solve.i: solve.f90.i
-.PHONY : solve.i
-
-# target to preprocess a source file
-solve.f90.i:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/solve.f90.i
-.PHONY : solve.f90.i
-
-solve.s: solve.f90.s
-.PHONY : solve.s
+solve_hubbard.s: solve_hubbard.f90.s
+.PHONY : solve_hubbard.s
 
 # target to generate assembly for a file
-solve.f90.s:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/solve.f90.s
-.PHONY : solve.f90.s
+solve_hubbard.f90.s:
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/solve_hubbard.f90.s
+.PHONY : solve_hubbard.f90.s
 
 spgf_bandlanczos.o: spgf_bandlanczos.f90.o
 .PHONY : spgf_bandlanczos.o
 
 # target to build an object file
 spgf_bandlanczos.f90.o:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/spgf_bandlanczos.f90.o
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/spgf_bandlanczos.f90.o
 .PHONY : spgf_bandlanczos.f90.o
 
 spgf_bandlanczos.i: spgf_bandlanczos.f90.i
@@ -404,7 +454,7 @@ spgf_bandlanczos.i: spgf_bandlanczos.f90.i
 
 # target to preprocess a source file
 spgf_bandlanczos.f90.i:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/spgf_bandlanczos.f90.i
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/spgf_bandlanczos.f90.i
 .PHONY : spgf_bandlanczos.f90.i
 
 spgf_bandlanczos.s: spgf_bandlanczos.f90.s
@@ -412,7 +462,7 @@ spgf_bandlanczos.s: spgf_bandlanczos.f90.s
 
 # target to generate assembly for a file
 spgf_bandlanczos.f90.s:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/spgf_bandlanczos.f90.s
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/spgf_bandlanczos.f90.s
 .PHONY : spgf_bandlanczos.f90.s
 
 spgf_ed.o: spgf_ed.f90.o
@@ -420,7 +470,7 @@ spgf_ed.o: spgf_ed.f90.o
 
 # target to build an object file
 spgf_ed.f90.o:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/spgf_ed.f90.o
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/spgf_ed.f90.o
 .PHONY : spgf_ed.f90.o
 
 spgf_ed.i: spgf_ed.f90.i
@@ -428,7 +478,7 @@ spgf_ed.i: spgf_ed.f90.i
 
 # target to preprocess a source file
 spgf_ed.f90.i:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/spgf_ed.f90.i
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/spgf_ed.f90.i
 .PHONY : spgf_ed.f90.i
 
 spgf_ed.s: spgf_ed.f90.s
@@ -436,7 +486,7 @@ spgf_ed.s: spgf_ed.f90.s
 
 # target to generate assembly for a file
 spgf_ed.f90.s:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/spgf_ed.f90.s
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/spgf_ed.f90.s
 .PHONY : spgf_ed.f90.s
 
 static_rq.o: static_rq.f90.o
@@ -444,7 +494,7 @@ static_rq.o: static_rq.f90.o
 
 # target to build an object file
 static_rq.f90.o:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/static_rq.f90.o
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/static_rq.f90.o
 .PHONY : static_rq.f90.o
 
 static_rq.i: static_rq.f90.i
@@ -452,7 +502,7 @@ static_rq.i: static_rq.f90.i
 
 # target to preprocess a source file
 static_rq.f90.i:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/static_rq.f90.i
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/static_rq.f90.i
 .PHONY : static_rq.f90.i
 
 static_rq.s: static_rq.f90.s
@@ -460,7 +510,7 @@ static_rq.s: static_rq.f90.s
 
 # target to generate assembly for a file
 static_rq.f90.s:
-	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/main.x.dir/build.make src/CMakeFiles/main.x.dir/static_rq.f90.s
+	cd /home/qmarecat/Desktop/Work/Github/PyHub/pyhub/libs && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/hubbard.x.dir/build.make src/CMakeFiles/hubbard.x.dir/static_rq.f90.s
 .PHONY : static_rq.f90.s
 
 # Help Target
@@ -470,39 +520,45 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
-	@echo "... install"
-	@echo "... install/local"
-	@echo "... install/strip"
-	@echo "... list_install_components"
 	@echo "... rebuild_cache"
-	@echo "... main.x"
+	@echo "... basis.x"
+	@echo "... hubbard.x"
 	@echo "... basis.o"
 	@echo "... basis.i"
 	@echo "... basis.s"
+	@echo "... basismod.o"
+	@echo "... basismod.i"
+	@echo "... basismod.s"
 	@echo "... boltzmann.o"
 	@echo "... boltzmann.i"
 	@echo "... boltzmann.s"
+	@echo "... compute_basis.o"
+	@echo "... compute_basis.i"
+	@echo "... compute_basis.s"
 	@echo "... diagmat.o"
 	@echo "... diagmat.i"
 	@echo "... diagmat.s"
 	@echo "... exact_diag.o"
 	@echo "... exact_diag.i"
 	@echo "... exact_diag.s"
+	@echo "... funcmod.o"
+	@echo "... funcmod.i"
+	@echo "... funcmod.s"
 	@echo "... hprod.o"
 	@echo "... hprod.i"
 	@echo "... hprod.s"
+	@echo "... hubbard.o"
+	@echo "... hubbard.i"
+	@echo "... hubbard.s"
+	@echo "... hubmod.o"
+	@echo "... hubmod.i"
+	@echo "... hubmod.s"
 	@echo "... lanczos.o"
 	@echo "... lanczos.i"
 	@echo "... lanczos.s"
-	@echo "... mainf.o"
-	@echo "... mainf.i"
-	@echo "... mainf.s"
-	@echo "... mods.o"
-	@echo "... mods.i"
-	@echo "... mods.s"
-	@echo "... solve.o"
-	@echo "... solve.i"
-	@echo "... solve.s"
+	@echo "... solve_hubbard.o"
+	@echo "... solve_hubbard.i"
+	@echo "... solve_hubbard.s"
 	@echo "... spgf_bandlanczos.o"
 	@echo "... spgf_bandlanczos.i"
 	@echo "... spgf_bandlanczos.s"

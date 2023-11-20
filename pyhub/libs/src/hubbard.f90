@@ -1,32 +1,22 @@
-PROGRAM MAIN
-    USE COMMOD
+PROGRAM HUBBARD
+    USE BASISMOD
+    USE HUBMOD
     USE FUNCMOD
     USE HDF5
     ! ------------------------------------------------ !
     ! --- MAIN PROGRAM FOR SOLVING HUBBARD CLUSTER --- !
     ! ------------------------------------------------ !
     IMPLICIT NONE
+    LOGICAL :: BOOL
 
     ! --- read input
+    BOOL = .FALSE.
+    CALL READ_BASIS(BOOL)
     CALL READ_INPUT()
-    ! --- basis set
-    IF (DO_BASIS) THEN
-        CALL BASIS()
-        CALL WRITE_BASIS()
-    ENDIF
-    IF (DO_SOLVE) THEN
-        if (.NOT. DO_BASIS) CALL READ_BASIS()
-        CALL SOLVE()
-    ENDIF
-    IF (DO_RQ) THEN
-        if (.NOT. DO_BASIS) CALL READ_BASIS()
-        if (.NOT. DO_SOLVE) CALL READ_BOLTZMANN()
-        CALL STATIC_RQ()
-    ENDIF
-
+    IF (DO_SOLVE) CALL SOLVE_HUBBARD()
+    CALL READ_BOLTZMANN
+    IF (DO_RQ) CALL STATIC_RQ()
     IF (DO_SPGF) THEN
-        if (.NOT. DO_BASIS) CALL READ_BASIS()
-        if (.NOT. DO_SOLVE) CALL READ_BOLTZMANN()
         IF (NSTATES>MAXLCZ .AND. TP .GT. 1.E-14) THEN
             WRITE(*,*) 'SET TEMPERATURE TO 0 FOR LANCZOS GF'
             STOP
@@ -37,12 +27,11 @@ PROGRAM MAIN
             CALL SPGF_BANDLANCZOS()
         ENDIF
     ENDIF
-
 END PROGRAM
 
 
 SUBROUTINE READ_INPUT()
-    USE COMMOD
+    USE BASISMOD
     USE HUBMOD
     USE HDF5
     ! ---
@@ -55,7 +44,8 @@ SUBROUTINE READ_INPUT()
     INTEGER(HSIZE_T), DIMENSION(2) :: D2
     INTEGER(HSIZE_T), DIMENSION(1) :: D1
     CALL h5open_f(ERROR)
-    CALL h5fopen_f('hubbard.h5', H5F_ACC_RDONLY_F, FILE_ID, ERROR)
+
+    CALL h5fopen_f('basis.h5', H5F_ACC_RDONLY_F, FILE_ID, ERROR)
     call h5gopen_f(FILE_ID, 'input',GRP_ID, ERROR )
     D1=(/1/)
     ! --- nb_sites
@@ -71,14 +61,15 @@ SUBROUTINE READ_INPUT()
     call h5aopen_f(GRP_ID, 'sz', DSET_ID, ERROR)
     call h5aread_f(DSET_ID, H5T_NATIVE_DOUBLE, SZ, D1, ERROR)
     call h5aclose_f(DSET_ID, ERROR)
-    ! --- BASIS CALC
-    call h5aopen_f(GRP_ID, 'do_basis', DSET_ID, ERROR)
-    call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, MV, D1, ERROR)
-    call h5aclose_f(DSET_ID, ERROR)
-    DO_BASIS=.FALSE.
-    IF (MV/=0) THEN
-        DO_BASIS=.TRUE.
-    ENDIF
+
+    ! ---
+    call h5gclose_f(GRP_ID,ERROR)
+    call h5fclose_f(FILE_ID,ERROR)
+
+
+    CALL h5fopen_f('hubbard.h5', H5F_ACC_RDONLY_F, FILE_ID, ERROR)
+    call h5gopen_f(FILE_ID, 'input',GRP_ID, ERROR )
+
     ! --- SOLUTION CALC
     call h5aopen_f(GRP_ID, 'do_solution', DSET_ID, ERROR)
     call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, MV, D1, ERROR)
@@ -136,11 +127,6 @@ SUBROUTINE READ_INPUT()
     call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, EXC_STATE, D1, ERROR)
     call h5aclose_f(DSET_ID, ERROR)
     ! --- 
-    D4=(/NORB,NORB,NORB,NORB/)
-    ! --- U_list
-    call h5dopen_f(GRP_ID, 'U', DSET_ID, ERROR)
-    call h5dread_f(DSET_ID, H5T_NATIVE_DOUBLE, UL, D4, ERROR)
-    call h5dclose_f(DSET_ID, ERROR)
     ! --- is U local
     call h5aopen_f(GRP_ID, 'is_Uloc', DSET_ID, ERROR)
     call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, MV, D1, ERROR)
@@ -149,10 +135,15 @@ SUBROUTINE READ_INPUT()
     IF (MV/=0) THEN
         IS_ULOC=.TRUE.
         ALLOCATE(ULDIAG(NORB))
-        DO I = 1,NORB
-            ULDIAG(I) = UL(I,I,I,I)
-        enddo
-        DEALLOCATE(UL)
+        D1=(/NORB/)
+        call h5dopen_f(GRP_ID, 'U', DSET_ID, ERROR)
+        call h5dread_f(DSET_ID, H5T_NATIVE_DOUBLE, ULDIAG, D1, ERROR)
+        call h5dclose_f(DSET_ID, ERROR)
+    ELSE
+        D4=(/NORB,NORB,NORB,NORB/)
+        call h5dopen_f(GRP_ID, 'U', DSET_ID, ERROR)
+        call h5dread_f(DSET_ID, H5T_NATIVE_DOUBLE, UL, D4, ERROR)
+        call h5dclose_f(DSET_ID, ERROR)
     ENDIF
     ! --- 
     D2=(/NORB,NORB/)

@@ -1,5 +1,5 @@
 SUBROUTINE LANCZOS()
-    USE COMMOD
+    USE BASISMOD
     USE HUBMOD
     USE HDF5
     ! -------------------------------------- !

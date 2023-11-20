@@ -49,4 +49,4 @@ endif()
 
 add_subdirectory(src)
 
-#install(TARGETS main.x RUNTIME DESTINATION "bin")
+#install(TARGETS hubbard.x RUNTIME DESTINATION "bin")

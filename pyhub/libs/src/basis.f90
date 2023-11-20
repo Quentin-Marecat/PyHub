@@ -1,39 +1,51 @@
 SUBROUTINE BASIS()
-    USE COMMOD
+    USE BASISMOD
     USE FUNCMOD
     IMPLICIT NONE 
+    integer :: I
 
     IF (ALLOCATED(BUP)) DEALLOCATE(BUP)
     IF (ALLOCATED(BDOWN)) DEALLOCATE(BDOWN)
-    NUP=INT((((2*SZ)+NELEC))/2)
-    NDOWN=NELEC-NUP
-    NSUP=INT(BINOM(NORB,NUP))
-    NSDOWN=INT(BINOM(NORB,NDOWN))
-    NSTATES=NSUP*NSDOWN
-    ALLOCATE(BUP(NSUP),BDOWN(NSDOWN))
-    CALL HILBERT(NORB,NUP,NSUP,BUP)
-    IF (INT(2*SZ)/=0) THEN 
-        CALL HILBERT(NORB,NDOWN,NSDOWN,BDOWN)
-    ELSE 
-        BDOWN=BUP
+
+    IF (.NOT. FOCK) THEN
+        NUP=INT((((2*SZ)+NELEC))/2)
+        NDOWN=NELEC-NUP
+        NSUP=INT(BINOM(NORB,NUP))
+        NSDOWN=INT(BINOM(NORB,NDOWN))
+        NSTATES=NSUP*NSDOWN
+        ALLOCATE(BUP(NSUP),BDOWN(NSDOWN))
+        CALL HILBERT(NORB,NUP,NSUP,BUP)
+        IF (INT(2*SZ)/=0) THEN 
+            CALL HILBERT(NORB,NDOWN,NSDOWN,BDOWN)
+        ELSE 
+            BDOWN=BUP
+        ENDIF
+    ELSE
+        NSUP = 2**NORB
+        NSDOWN = 2**NORB
+        ALLOCATE(BUP(NSUP),BDOWN(NSDOWN))
+        NSTATES=NSUP*NSDOWN
+        DO I = 0,2**NORB-1
+            BUP(I+1) = I 
+            BDOWN(I+1) = I
+        ENDDO 
     ENDIF
     RETURN 
 END SUBROUTINE
 
 
 SUBROUTINE WRITE_BASIS()
-    USE COMMOD 
+    USE BASISMOD
     USE HDF5
     ! ---
-    ! --- WRITE BASIS SET FOR HUBBARD CALCULATION
+    ! --- WRITE BASIS SET 
     ! ---
     IMPLICIT NONE
-    INTEGER :: ERROR,I,J
-    integer,allocatable :: b(:)
+    INTEGER :: ERROR
     INTEGER(HID_T)  :: FILE_ID, SPACE_ID, DSET_ID,  SGRP_ID
     INTEGER(HSIZE_T), DIMENSION(1) :: D1
     CALL h5open_f(ERROR)
-    CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+    CALL h5fopen_f('basis.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
     call h5gcreate_f(FILE_ID, 'basis',sGRP_ID, ERROR )
     D1=(/1/)
     CALL h5screate_simple_f(1,D1, SPACE_ID, ERROR)
@@ -64,20 +76,6 @@ SUBROUTINE WRITE_BASIS()
     CALL h5dwrite_f(DSET_ID, H5T_NATIVE_INTEGER, BDOWN,D1, ERROR)
     CALL h5dclose_f(DSET_ID, ERROR)
     CALL h5sclose_f(SPACE_ID, ERROR)
-    ! --- basis
-    D1=(/NSTATES/)
-    ALLOCATE(B(NSTATES))
-    DO I = 1,NSUP
-        DO J = 1,NSDOWN
-            B((J-1)*NSUP+I) = BUP(I) + ISHFT(BDOWN(J),NORB)
-        ENDDO 
-    ENDDO
-    CALL h5screate_simple_f(1,D1, SPACE_ID, ERROR)
-    CALL h5dcreate_f(SGRP_ID, 'basis_full',H5T_NATIVE_INTEGER, SPACE_ID, DSET_ID, ERROR)
-    CALL h5dwrite_f(DSET_ID, H5T_NATIVE_INTEGER, B,D1, ERROR)
-    CALL h5dclose_f(DSET_ID, ERROR)
-    CALL h5sclose_f(SPACE_ID, ERROR)
-    DEALLOCATE(B)
 
     CALL h5gclose_f(SGRP_ID, ERROR)
     call h5fclose_f(FILE_ID,ERROR)
@@ -87,57 +85,87 @@ SUBROUTINE WRITE_BASIS()
 END SUBROUTINE
 
 
-SUBROUTINE READ_BASIS()
-    USE COMMOD
+SUBROUTINE READ_BASIS(INIT)
+    USE BASISMOD
     USE HDF5
     ! ---
     ! --- READ BASIS FROM HUBBARD CALCULATION
     ! --- ASSUME THAT THE BASIS MATCH WITH INPUT
     ! ---
     IMPLICIT NONE
-    INTEGER*4 :: ERROR
+    LOGICAL, INTENT(IN) :: INIT
+    INTEGER*4 :: ERROR, MV,I
+    integer,allocatable :: b(:)
     INTEGER(HID_T)  :: FILE_ID, DSET_ID, SGRP_ID
     INTEGER(HSIZE_T), DIMENSION(1) :: D1
-    IF (ALLOCATED(BUP)) DEALLOCATE(BUP)
-    IF (ALLOCATED(BDOWN)) DEALLOCATE(BDOWN)
     
     CALL h5open_f(ERROR)
-    CALL h5fopen_f('hubbard.h5', H5F_ACC_RDONLY_F, FILE_ID, ERROR)
-    call h5gopen_f(FILE_ID, 'basis',SGRP_ID, ERROR )
-    ! --- nstates
-    D1=(/1/)
-    call h5aopen_f(SGRP_ID, 'nstates', DSET_ID, ERROR)
-    call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NSTATES, D1, ERROR)
-    call h5aclose_f(DSET_ID, ERROR)
-    ISLANCZOS = .FALSE.
-    IF (MAXLCZ<NSTATES) ISLANCZOS = .TRUE.
-    ! --- nsup
-    D1=(/1/)
-    call h5aopen_f(SGRP_ID, 'nsup', DSET_ID, ERROR)
-    call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NSUP, D1, ERROR)
-    call h5aclose_f(DSET_ID, ERROR)
-    ! --- basis_up
-    ALLOCATE(BUP(NSUP))
-    D1=(/NSUP/)
-    call h5dopen_f(SGRP_ID, 'basis_up', DSET_ID, ERROR)
-    call h5dread_f(DSET_ID, H5T_NATIVE_INTEGER, BUP, D1, ERROR)
-    call h5dclose_f(DSET_ID, ERROR)
-    ! --- nsdown
-    call h5aopen_f(SGRP_ID, 'nsdown', DSET_ID, ERROR)
-    call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NSDOWN, D1, ERROR)
-    call h5aclose_f(DSET_ID, ERROR)
-    ! --- basis_down
-    ALLOCATE(BDOWN(NSDOWN))
-    D1=(/NSDOWN/)
-    call h5dopen_f(SGRP_ID, 'basis_down', DSET_ID, ERROR)
-    call h5dread_f(DSET_ID, H5T_NATIVE_INTEGER, BDOWN, D1, ERROR)
-    call h5dclose_f(DSET_ID, ERROR)
-    ! ---
-    call h5gclose_f(SGRP_ID,ERROR)
+    CALL h5fopen_f('basis.h5', H5F_ACC_RDONLY_F, FILE_ID, ERROR)
+    IF (INIT) THEN
+        call h5gopen_f(FILE_ID, 'input',SGRP_ID, ERROR )
+        ! --- nb_sites
+        D1=(/1/)
+        call h5aopen_f(SGRP_ID, 'nb_sites', DSET_ID, ERROR)
+        call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NORB, D1, ERROR)
+        call h5aclose_f(DSET_ID, ERROR)
+        ! --- nb_elec
+        D1=(/1/)
+        call h5aopen_f(SGRP_ID, 'nb_elec', DSET_ID, ERROR)
+        call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NELEC, D1, ERROR)
+        call h5aclose_f(DSET_ID, ERROR)
+        ! --- sz
+        D1=(/1/)
+        call h5aopen_f(SGRP_ID, 'sz', DSET_ID, ERROR)
+        call h5aread_f(DSET_ID, H5T_NATIVE_DOUBLE, SZ, D1, ERROR)
+        call h5aclose_f(DSET_ID, ERROR)
+        ! --- fock
+        D1=(/1/)
+        call h5aopen_f(SGRP_ID, 'fock', DSET_ID, ERROR)
+        call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, MV, D1, ERROR)
+        call h5aclose_f(DSET_ID, ERROR)
+        FOCK=.FALSE.
+        IF (MV/=0) FOCK=.TRUE.
+
+        call h5gclose_f(SGRP_ID, ERROR )
+    ELSE
+        IF (ALLOCATED(BUP)) DEALLOCATE(BUP)
+        IF (ALLOCATED(BDOWN)) DEALLOCATE(BDOWN)
+        call h5gopen_f(FILE_ID, 'basis',SGRP_ID, ERROR )
+        ! --- nstates
+        D1=(/1/)
+        call h5aopen_f(SGRP_ID, 'nstates', DSET_ID, ERROR)
+        call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NSTATES, D1, ERROR)
+        call h5aclose_f(DSET_ID, ERROR)
+    !    ISLANCZOS = .FALSE.
+    !    IF (MAXLCZ<NSTATES) ISLANCZOS = .TRUE.
+        ! --- nsup
+        D1=(/1/)
+        call h5aopen_f(SGRP_ID, 'nsup', DSET_ID, ERROR)
+        call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NSUP, D1, ERROR)
+        call h5aclose_f(DSET_ID, ERROR)
+        ! --- basis_up
+        ALLOCATE(BUP(NSUP))
+        D1=(/NSUP/)
+        call h5dopen_f(SGRP_ID, 'basis_up', DSET_ID, ERROR)
+        call h5dread_f(DSET_ID, H5T_NATIVE_INTEGER, BUP, D1, ERROR)
+        call h5dclose_f(DSET_ID, ERROR)
+        ! --- nsdown
+        call h5aopen_f(SGRP_ID, 'nsdown', DSET_ID, ERROR)
+        call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NSDOWN, D1, ERROR)
+        call h5aclose_f(DSET_ID, ERROR)
+        ! --- basis_down
+        ALLOCATE(BDOWN(NSDOWN))
+        D1=(/NSDOWN/)
+        call h5dopen_f(SGRP_ID, 'basis_down', DSET_ID, ERROR)
+        call h5dread_f(DSET_ID, H5T_NATIVE_INTEGER, BDOWN, D1, ERROR)
+        call h5dclose_f(DSET_ID, ERROR)
+        ! ---
+        call h5gclose_f(SGRP_ID,ERROR)
+        NUP=INT((((2*SZ)+NELEC))/2)
+        NDOWN=NELEC-NUP
+    ENDIF
     call h5fclose_f(FILE_ID,ERROR)
-    call h5close_f(ERROR)
-    NUP=INT((((2*SZ)+NELEC))/2)
-    NDOWN=NELEC-NUP
+    CALL h5close_f(ERROR)
     IF (ERROR/=0) WRITE(6,*)" *** Error in solutions hdf5 files"
     RETURN
 END SUBROUTINE READ_BASIS
