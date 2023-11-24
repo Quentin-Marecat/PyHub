@@ -14,8 +14,9 @@ PROGRAM HUBBARD
     CALL READ_BASIS(BOOL)
     CALL READ_INPUT()
     IF (DO_SOLVE) CALL SOLVE_HUBBARD()
-    CALL READ_BOLTZMANN
+    CALL READ_BOLTZMANN()
     IF (DO_RQ) CALL STATIC_RQ()
+
     IF (DO_SPGF) THEN
         IF (NSTATES>MAXLCZ .AND. TP .GT. 1.E-14) THEN
             WRITE(*,*) 'SET TEMPERATURE TO 0 FOR LANCZOS GF'
@@ -46,23 +47,30 @@ SUBROUTINE READ_INPUT()
     CALL h5open_f(ERROR)
 
     CALL h5fopen_f('basis.h5', H5F_ACC_RDONLY_F, FILE_ID, ERROR)
-    call h5gopen_f(FILE_ID, 'input',GRP_ID, ERROR )
+    D1=(/1/)
+    call h5aopen_f(FILE_ID, 'index', DSET_ID, ERROR)
+    call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, BASISINDEX_INT, D1, ERROR)
+    call h5aclose_f(DSET_ID, ERROR)
+    write(BASISINDEX, '(I0.3)') BASISINDEX_INT
+    call h5gopen_f(FILE_ID, BASISINDEX,GRP_ID, ERROR )
+    call h5gopen_f(GRP_ID, 'input',SGRP_ID, ERROR )
     D1=(/1/)
     ! --- nb_sites
-    call h5aopen_f(GRP_ID, 'nb_sites', DSET_ID, ERROR)
+    call h5aopen_f(SGRP_ID, 'nb_sites', DSET_ID, ERROR)
     call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NORB, D1, ERROR)
     call h5aclose_f(DSET_ID, ERROR)
     ALLOCATE(UL(NORB,NORB,NORB,NORB),T(NORB,NORB),J_MATRIX(NORB,NORB))
     ! --- nb_elec
-    call h5aopen_f(GRP_ID, 'nb_elec', DSET_ID, ERROR)
+    call h5aopen_f(SGRP_ID, 'nb_elec', DSET_ID, ERROR)
     call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NELEC, D1, ERROR)
     call h5aclose_f(DSET_ID, ERROR)
     ! --- sz
-    call h5aopen_f(GRP_ID, 'sz', DSET_ID, ERROR)
+    call h5aopen_f(SGRP_ID, 'sz', DSET_ID, ERROR)
     call h5aread_f(DSET_ID, H5T_NATIVE_DOUBLE, SZ, D1, ERROR)
     call h5aclose_f(DSET_ID, ERROR)
 
     ! ---
+    call h5gclose_f(SGRP_ID,ERROR)
     call h5gclose_f(GRP_ID,ERROR)
     call h5fclose_f(FILE_ID,ERROR)
 
@@ -151,10 +159,10 @@ SUBROUTINE READ_INPUT()
     call h5dopen_f(GRP_ID, 't_matrix', DSET_ID, ERROR)
     call h5dread_f(DSET_ID, H5T_NATIVE_DOUBLE, T, D2, ERROR)
     call h5dclose_f(DSET_ID, ERROR)
-    ! --- J matrix
-    call h5dopen_f(GRP_ID, 'J', DSET_ID, ERROR)
-    call h5dread_f(DSET_ID, H5T_NATIVE_DOUBLE, J_MATRIX, D2, ERROR)
-    call h5dclose_f(DSET_ID, ERROR)
+    ! ! --- J matrix
+    ! call h5dopen_f(GRP_ID, 'J', DSET_ID, ERROR)
+    ! call h5dread_f(DSET_ID, H5T_NATIVE_DOUBLE, J_MATRIX, D2, ERROR)
+    ! call h5dclose_f(DSET_ID, ERROR)
     ! --- 
     call h5gopen_f(GRP_ID, 'lanczos',SGRP_ID, ERROR )
     D1=(/1/)

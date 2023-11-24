@@ -9,7 +9,7 @@ SUBROUTINE HPROD(V,V2)
     V2 = 0.
     CALL TPROD(V,V2)
     CALL UPROD(V,V2)
-    CALL JPROD(V,V2)
+!    CALL JPROD(V,V2)
     RETURN
 END SUBROUTINE
 
@@ -40,8 +40,8 @@ SUBROUTINE HPROD_(V,V1)
                             IF (IAND(BUP(U),A) .EQ. 0 .AND. IAND(BDOWN(D),A) .EQ. A) &
                             V1((D-1)*NSUP+U)=V1((D-1)*NSUP+U)+V((D-1)*NSUP+U)*0.5*J_MATRIX(I,I)
                         ENDIF
-                        V1((D-1)*NSUP+U)=V1((D-1)*NSUP+U)+V((D-1)*NSUP+U)*J_MATRIX(I,J)*&
-                        (SZ_J(BUP(U),I)-SZ_J(BDOWN(D),I))*(SZ_J(BUP(U),J)-SZ_J(BDOWN(D),J))
+                        ! V1((D-1)*NSUP+U)=V1((D-1)*NSUP+U)+V((D-1)*NSUP+U)*J_MATRIX(I,J)*&
+                        ! (SZ_J(BUP(U),I)-SZ_J(BDOWN(D),I))*(SZ_J(BUP(U),J)-SZ_J(BDOWN(D),J))
                     ENDDO
                     NEW=KINOP(BUP(U),I,J)
                     IF (NEW>0) THEN
@@ -138,8 +138,8 @@ SUBROUTINE HPROD_(V,V1)
                             IF (IAND(BUP(U),A) .EQ. 0 .AND. IAND(BDOWN(D),A) .EQ. A) &
                             V1((D-1)*NSUP+U)=V1((D-1)*NSUP+U)+V((D-1)*NSUP+U)*0.5*J_MATRIX(I,I)
                         ENDIF
-                        V1((D-1)*NSUP+U)=V1((D-1)*NSUP+U)+V((D-1)*NSUP+U)*J_MATRIX(I,J)*&
-                        (SZ_J(BUP(U),I)-SZ_J(BDOWN(D),I))*(SZ_J(BUP(U),J)-SZ_J(BDOWN(D),J))
+                        ! V1((D-1)*NSUP+U)=V1((D-1)*NSUP+U)+V((D-1)*NSUP+U)*J_MATRIX(I,J)*&
+                        ! (SZ_J(BUP(U),I)-SZ_J(BDOWN(D),I))*(SZ_J(BUP(U),J)-SZ_J(BDOWN(D),J))
                     ENDDO
                     NEW=KINOP(BUP(U),I,J)
                     IF (NEW>0) THEN
@@ -400,14 +400,14 @@ SUBROUTINE JPROD(V,V1)
                     ENDIF
                 ENDDO
             ENDIF
-            IF (ABS(J_MATRIX(J,K)) .GE. 1.E-14) THEN
-                DO I = 1,NSUP 
-                    DO L1 = 1,NSDOWN
-                        V1((L1-1)*NSUP+I)=V1((L1-1)*NSUP+I)+V((L1-1)*NSUP+I)*J_MATRIX(J,K)*&
-                        (SZ_J(BUP(I),J)-SZ_J(BDOWN(L1),J))*(SZ_J(BUP(I),K)-SZ_J(BDOWN(L1),K))
-                    ENDDO
-                ENDDO
-            ENDIF
+            ! IF (ABS(J_MATRIX(J,K)) .GE. 1.E-14) THEN
+            !     DO I = 1,NSUP 
+            !         DO L1 = 1,NSDOWN
+            !             V1((L1-1)*NSUP+I)=V1((L1-1)*NSUP+I)+V((L1-1)*NSUP+I)*J_MATRIX(J,K)*&
+            !             (SZ_J(BUP(I),J)-SZ_J(BDOWN(L1),J))*(SZ_J(BUP(I),K)-SZ_J(BDOWN(L1),K))
+            !         ENDDO
+            !     ENDDO
+            ! ENDIF
         ENDDO
     ENDDO
     RETURN

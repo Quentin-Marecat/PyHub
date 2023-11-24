@@ -1,42 +1,79 @@
 import numpy as np
 import h5py
 import os
-from pyhub.tools.tools import find_file
+from pyhub.tools.tools import find_file, count_bit
 from itertools import product
+import re
 
 class Basis():
 
-    def __init__(self,nb_sites:int,nb_elec:int,sz:float,order:str='spin',fock:bool=False,init=False):
+    def __init__(self,nb_sites:int,order:str='spin',hilbert:tuple=None,memspace='10Go'):
         self.nb_sites = nb_sites
-        self.nb_elec = nb_elec
-        self.sz = sz 
-        self.fock=False
-        if fock or (nb_elec == None and sz == None):
-            self.fock = True
-            self.nb_elec = 0
-            self.sz = 0.
+        self.fock=True
+        self.nb_elec = None
+        self.sz = None
+        self.exec = find_file('../','basis.x')
+        self.path = self.exec.replace('basis.x', '')
+        size,unit = float(re.sub(r'(\d+)\w?o?',r'\1',memspace)),re.sub(r'\d+(\w?o?)',r'\1',memspace)
+        if unit == '':
+            self.memspace = size
+        elif unit == 'Ko':
+            self.memspace = size*10**3
+        elif unit == 'Mo':
+            self.memspace = size*10**6
+        elif unit == 'Go':
+            self.memspace = size*10**9
+        elif unit == 'To':
+            self.memspace = size*10**12
+        else:
+            raise ValueError(f'Set memspace as a correct string, not {memspace}')
+        if isinstance(hilbert,tuple):
+            self.fock = False
+            self.nb_elec = hilbert[0]
+            self.sz = hilbert[1]
+            self._check_hilbert_basis(self.nb_elec,self.sz)
         if order != 'site' and order != 'spin':
             raise ValueError(f'basis order must be in site or spin convention, not {order}')
         self.order = order
         self.comp_basis = True
-        if not self.fock:
-            self._check_in_basis(self.nb_elec,self.sz)
-        self.exec = find_file('../','basis.x')
-        self.path = self.exec.replace('basis.x', '')
-        if not init:
-            if os.path.exists(self.filename_basis):
-                with h5py.File(self.filename_basis,  "a") as file:
-                    if file['input'].attrs['nb_sites'] == self.nb_sites and file['input'].attrs['nb_elec'] == self.nb_elec and abs(file['input'].attrs['sz']-self.sz) < 1.e-14:
+        if os.path.exists(self.filename_basis):
+            with h5py.File(self.filename_basis,"a") as file:
+                for k in file.keys():
+                    if file[f'{k}/input'].attrs['nb_sites'] == self.nb_sites and \
+                        file[f'{k}/input'].attrs['nb_elec'] == self.nb_elec and \
+                            abs(file[f'{k}/input'].attrs['sz']-self.sz) < 1.e-14:
                         self.comp_basis = False
+                        self.index = int(k)
+            if self.comp_basis :
+                i=0
+                with h5py.File(self.filename_basis,"a") as file:
+                    list_index = np.array([*file.keys()],dtype=int)
+                while self.file_size > self.memspace and i <= len(list_index):
+                    self.__delitem__(list_index[i])
+                    i+=1
+                index = np.sort(list_index)
+                if len(index)>0:
+                    self.index = index[0]-1 if index[0]>1 else index[-1]+1
+                else:
+                    self.index=1
+        else:
+            self.index = 1
         if self.comp_basis :
-            self.__basisremove__()
             self.compute_basis()
 
     def __basisremove__(self):
         try:
             os.remove(self.filename_basis)
-        except FileNotFoundError:
+        except:
             pass
+
+    def __delitem__(self,k):
+        with h5py.File(self.filename_basis,"a") as file:
+            k_str = str(k)
+            while len(k_str)<3:
+                k_str = '0'+k_str
+            file.__delitem__(k_str)
+        return
 
     def __getitem__(self, index):
         if isinstance(index, np.ndarray):
@@ -69,18 +106,23 @@ class Basis():
                 downlist.append(a_new)
             return f'basis up :\n{uplist}\nbasis down :\n{downlist}'
 
+
+
     def compute_basis(self):
         file=h5py.File(self.filename_basis,'a')
-        grp=file.create_group('input')
+        file.attrs['size_index']=len(str(self.index))
+        file.attrs['index']=self.index
+        grp0 = file.create_group(f'{self.index_str}')
+        grp=grp0.create_group(f'input')
         grp.attrs['nb_sites'] = self.nb_sites
-        grp.attrs['nb_elec'] = self.nb_elec 
-        grp.attrs['sz'] = self.sz
+        grp.attrs['nb_elec'] = self.nb_elec if self.nb_elec is not None else -1
+        grp.attrs['sz'] = self.sz if self.sz is not None else -1
         grp.attrs['fock'] = self.fock
         file.close()
         self.exec_basis()
 
         
-    def _check_in_basis(self,nb_elec,sz):
+    def _check_hilbert_basis(self,nb_elec,sz):
         if not 0<=nb_elec<=2*self.nb_sites :
             raise ValueError(f"Number of electrons {nb_elec} does not match with the number of orbitals {self.nb_sites}")
         if not (nb_elec+int(np.around(2*sz)))%2==0:
@@ -89,7 +131,7 @@ class Basis():
     def exec_basis(self):
         os.system(self.exec)
         with h5py.File(self.filename_basis,"a") as file:
-            file['input'].attrs['do_solution']=True
+            file[f'{self.index_str}/input'].attrs['do_solution']=True
 
     def spin_ordering(self,a,b):
         return a,(b<<self.nb_sites)
@@ -103,28 +145,19 @@ class Basis():
             b_new |= bit_b << (2*i+1)  # Placez le bit à la position 2*i+1
         return a_new,b_new
 
-    def count_bit(self,n):
-        '''
-        Count the number of ones in bitstring given by integer n
-        '''
-        count = 0
-        while n:
-            count += 1
-            n &= (n - 1)
-        return count
 
-    def hilbert_restricted(self,number_of_elecs=None,sz=None):
-        number_of_elecs = self.nb_elec if number_of_elecs is None else int(number_of_elecs)
-        sz = self.sz if sz is None else sz
+    def hilbert_restricted(self,hilbert):
+        number_of_elecs,sz = hilbert
         nup,ndown = int(number_of_elecs/2+sz),int(number_of_elecs/2-sz)
         self.uplist = []
         for up in self.basis_up:
-            if self.count_bit(up) == nup:
+            if count_bit(up) == nup:
                 self.uplist.append(up)
         self.downlist = []
         for down in self.basis_down:
-            if self.count_bit(down) == ndown:
+            if count_bit(down) == ndown:
                 self.downlist.append(down)
+        return self.hilbert_index
 
     @property
     def hilbert_index(self):
@@ -141,8 +174,19 @@ class Basis():
         return 'basis.h5'
 
     @property
+    def index_str(self):
+        index_str = str(self.index)
+        while len(index_str)<3:
+            index_str = '0'+index_str
+        return index_str
+
+    @property
     def hilbert(self):
         return True if not self.fock else False
+
+    @property
+    def file_size(self):
+        return float(os.path.getsize(self.filename_basis))
 
     @property
     def nup(self):
@@ -155,30 +199,31 @@ class Basis():
     def basis(self):
         with h5py.File(self.filename_basis,  "r") as file:
             if self.order == 'spin':
-                return np.array([np.sum(self.spin_ordering(i,j)) for i,j in product(np.array(file['basis/basis_up'],dtype=int),np.array(file['basis/basis_down'],dtype=int))],dtype=int)
+                return np.array([np.sum(self.spin_ordering(i,j)) for i,j in product(np.array(file[f'{self.index_str}/basis/basis_up'],dtype=int),np.array(file[f'{self.index_str}/basis/basis_down'],dtype=int))],dtype=int)
             else:
-                return np.array([np.sum(self.site_ordering(i,j)) for i,j in product(np.array(file['basis/basis_up'],dtype=int),np.array(file['basis/basis_down'],dtype=int))],dtype=int)
+                return np.array([np.sum(self.site_ordering(i,j)) for i,j in product(np.array(file[f'{self.index_str}/basis/basis_up'],dtype=int),np.array(file[f'{self.index_str}/basis/basis_down'],dtype=int))],dtype=int)
     @property 
     def basis_up(self):
         with h5py.File(self.filename_basis,  "r") as file:
-            return np.array(file['basis/basis_up'],dtype=int)
+            return np.array(file[f'{self.index_str}/basis/basis_up'],dtype=int)
+
     @property 
     def basis_down(self):
         with h5py.File(self.filename_basis,  "r") as file:
-            return np.array(file['basis/basis_down'],dtype=int)
+            return np.array(file[f'{self.index_str}/basis/basis_down'],dtype=int)
 
     @property
     def nb_states(self):
         with h5py.File(self.filename_basis,  "r") as file:
-            return file['basis'].attrs['nstates'][0]
+            return self.nb_sup * self.nb_sdown
     @property
     def nb_sup(self):
         with h5py.File(self.filename_basis,  "r") as file:
-            return file['basis'].attrs['nsup'][0]
+            return file[f'{self.index_str}/basis'].attrs['nsup'][0]
     @property
     def nb_sdown(self):
         with h5py.File(self.filename_basis,  "r") as file:
-            return file['basis'].attrs['nsdown'][0]
+            return file[f'{self.index_str}/basis'].attrs['nsdown'][0]
 
     @property
     def nstates(self):

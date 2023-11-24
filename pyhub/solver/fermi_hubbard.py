@@ -17,17 +17,15 @@ class FermiHubbard(CoreSolver):
     Fortran computation is used for efficiency
     HDF5 file is generated
     """
-    def __init__(self,nb_sites,nb_elec:int,sz:float,t_matrix:np.ndarray,U:float=0,J=None,T=0.,fock=False,order='spin'): 
+    def __init__(self,nb_sites,nb_elec:int,sz:float,t_matrix:np.ndarray,U:float=0,T=0.,fock=False,order='spin'): 
         r'''
         H = \sum_{ij\sigma}t_{ij}c^\dagger_{i\sigma}c_{j\sigma} + \sum_{ijkl} U_{ijkl}c^\dagger_{i\sigma}c_{j\sigma}c^\dagger_{k\bar{\sigma}}c_{l\bar{\sigma}}
-            + \sum_{ij}J_{ij}S_iS_j
         '''
         CoreSolver.__init__(self,nb_sites,nb_elec,sz,T,fock=fock,order=order)
         self.t_matrix=t_matrix 
         self.ek,self.Vk = np.linalg.eigh(self.t_matrix)
         self.U=U
         self.is_Uloc=True if len(self.U_matrix.shape)==1 else False
-        self.J_matrix=np.zeros((nb_sites,nb_sites)) if J is None else J
 
     @property
     def filename_hubbard(self):
@@ -55,7 +53,7 @@ class FermiHubbard(CoreSolver):
         grp.create_dataset('U',(self.nb_sites,self.nb_sites,self.nb_sites,self.nb_sites,) if (not self.is_Uloc) else (self.nb_sites,) ,dtype=np.double,data=self.U_matrix)
         grp.attrs['is_Uloc']=self.is_Uloc
         grp.create_dataset('t_matrix',(self.nb_sites,self.nb_sites,),dtype=np.double,data=self.t_matrix)
-        grp.create_dataset('J',(self.nb_sites,self.nb_sites,),dtype=np.double,data=self.J_matrix)
+#        grp.create_dataset('J',(self.nb_sites,self.nb_sites,),dtype=np.double,data=self.J_matrix)
         grp.attrs['T']=self.T
         grp.attrs['nb_comp_states']=self.nb_comp_states_
         grp.attrs['excited_state']=0

@@ -42,11 +42,23 @@ SUBROUTINE WRITE_BASIS()
     ! ---
     IMPLICIT NONE
     INTEGER :: ERROR
-    INTEGER(HID_T)  :: FILE_ID, SPACE_ID, DSET_ID,  SGRP_ID
+    INTEGER(HID_T)  :: FILE_ID, SPACE_ID, DSET_ID, GRP_ID,  SGRP_ID
     INTEGER(HSIZE_T), DIMENSION(1) :: D1
     CALL h5open_f(ERROR)
     CALL h5fopen_f('basis.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
-    call h5gcreate_f(FILE_ID, 'basis',sGRP_ID, ERROR )
+    D1=(/1/)
+    call h5aopen_f(FILE_ID, 'index', DSET_ID, ERROR)
+    call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, BASISINDEX_INT, D1, ERROR)
+    call h5aclose_f(DSET_ID, ERROR)
+    write(BASISINDEX, '(I0.3)') BASISINDEX_INT
+    call h5gopen_f(FILE_ID, BASISINDEX,GRP_ID, ERROR )
+        D1=(/1/)
+    call h5aopen_f(FILE_ID, 'index', DSET_ID, ERROR)
+    call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, BASISINDEX_INT, D1, ERROR)
+    call h5aclose_f(DSET_ID, ERROR)
+    write(BASISINDEX, '(I0.3)') BASISINDEX_INT
+    call h5gopen_f(FILE_ID, BASISINDEX,GRP_ID, ERROR )
+    call h5gcreate_f(GRP_ID, 'basis',SGRP_ID, ERROR )
     D1=(/1/)
     CALL h5screate_simple_f(1,D1, SPACE_ID, ERROR)
     ! --- nstates
@@ -78,6 +90,7 @@ SUBROUTINE WRITE_BASIS()
     CALL h5sclose_f(SPACE_ID, ERROR)
 
     CALL h5gclose_f(SGRP_ID, ERROR)
+    CALL h5gclose_f(GRP_ID, ERROR)
     call h5fclose_f(FILE_ID,ERROR)
     CALL h5close_f(ERROR)
     IF (ERROR/=0) WRITE(6,*)" *** Error in solutions hdf5 files"
@@ -94,15 +107,20 @@ SUBROUTINE READ_BASIS(INIT)
     ! ---
     IMPLICIT NONE
     LOGICAL, INTENT(IN) :: INIT
-    INTEGER*4 :: ERROR, MV,I
-    integer,allocatable :: b(:)
-    INTEGER(HID_T)  :: FILE_ID, DSET_ID, SGRP_ID
+    INTEGER*4 :: ERROR, MV
+    INTEGER(HID_T)  :: FILE_ID, DSET_ID, GRP_ID, SGRP_ID
     INTEGER(HSIZE_T), DIMENSION(1) :: D1
     
     CALL h5open_f(ERROR)
     CALL h5fopen_f('basis.h5', H5F_ACC_RDONLY_F, FILE_ID, ERROR)
+    D1=(/1/)
+    call h5aopen_f(FILE_ID, 'index', DSET_ID, ERROR)
+    call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, BASISINDEX_INT, D1, ERROR)
+    call h5aclose_f(DSET_ID, ERROR)
+    write(BASISINDEX, '(I0.3)') BASISINDEX_INT
+    call h5gopen_f(FILE_ID, BASISINDEX,GRP_ID, ERROR )
     IF (INIT) THEN
-        call h5gopen_f(FILE_ID, 'input',SGRP_ID, ERROR )
+        call h5gopen_f(GRP_ID, 'input',SGRP_ID, ERROR )
         ! --- nb_sites
         D1=(/1/)
         call h5aopen_f(SGRP_ID, 'nb_sites', DSET_ID, ERROR)
@@ -125,19 +143,28 @@ SUBROUTINE READ_BASIS(INIT)
         call h5aclose_f(DSET_ID, ERROR)
         FOCK=.FALSE.
         IF (MV/=0) FOCK=.TRUE.
-
+        IF (.NOT. FOCK) THEN
+            NUP=INT((((2*SZ)+NELEC))/2)
+            NDOWN=NELEC-NUP
+        ENDIF
         call h5gclose_f(SGRP_ID, ERROR )
     ELSE
+        call h5gopen_f(GRP_ID, 'input',SGRP_ID, ERROR )
+        ! --- nb_sites
+        D1=(/1/)
+        call h5aopen_f(SGRP_ID, 'nb_sites', DSET_ID, ERROR)
+        call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NORB, D1, ERROR)
+        call h5aclose_f(DSET_ID, ERROR)
+        call h5gclose_f(SGRP_ID, ERROR )
+
         IF (ALLOCATED(BUP)) DEALLOCATE(BUP)
         IF (ALLOCATED(BDOWN)) DEALLOCATE(BDOWN)
-        call h5gopen_f(FILE_ID, 'basis',SGRP_ID, ERROR )
-        ! --- nstates
-        D1=(/1/)
-        call h5aopen_f(SGRP_ID, 'nstates', DSET_ID, ERROR)
-        call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NSTATES, D1, ERROR)
-        call h5aclose_f(DSET_ID, ERROR)
+        IF (ALLOCATED(BFULL)) DEALLOCATE(BFULL)
+
+        call h5gopen_f(GRP_ID, 'basis',SGRP_ID, ERROR )
     !    ISLANCZOS = .FALSE.
     !    IF (MAXLCZ<NSTATES) ISLANCZOS = .TRUE.
+
         ! --- nsup
         D1=(/1/)
         call h5aopen_f(SGRP_ID, 'nsup', DSET_ID, ERROR)
@@ -159,11 +186,10 @@ SUBROUTINE READ_BASIS(INIT)
         call h5dopen_f(SGRP_ID, 'basis_down', DSET_ID, ERROR)
         call h5dread_f(DSET_ID, H5T_NATIVE_INTEGER, BDOWN, D1, ERROR)
         call h5dclose_f(DSET_ID, ERROR)
-        ! ---
-        call h5gclose_f(SGRP_ID,ERROR)
-        NUP=INT((((2*SZ)+NELEC))/2)
-        NDOWN=NELEC-NUP
+        call h5gclose_f(sGRP_ID, ERROR )
+        NSTATES = NSUP * NSDOWN
     ENDIF
+    call h5gclose_f(GRP_ID, ERROR )
     call h5fclose_f(FILE_ID,ERROR)
     CALL h5close_f(ERROR)
     IF (ERROR/=0) WRITE(6,*)" *** Error in solutions hdf5 files"

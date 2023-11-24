@@ -55,21 +55,13 @@ MODULE FUNCMOD
         RETURN
     END FUNCTION
 
-    REAL*8 FUNCTION SZ_J(STATE,POS)
-        INTEGER, INTENT(IN) :: STATE,POS
-        INTEGER :: A
-        SZ_J = 0.
-        A = ISHFT(1,POS-1)
-        IF(IAND(STATE,A) .EQ. A) SZ_J = 0.5 
-        RETURN 
-    END function SZ_J
 
     REAL*8 FUNCTION N_J(STATE,POS)
         INTEGER, INTENT(IN) :: STATE,POS
         INTEGER :: A
         N_J = 0.
         A = ISHFT(1,POS-1)
-        IF(IAND(STATE,A) .EQ. A) N_J = 1 
+        IF(IAND(STATE,A) .EQ. A) N_J = 1.
         RETURN 
     END function N_J
 
@@ -89,103 +81,4 @@ MODULE FUNCMOD
         RETURN
     END FUNCTION
 
-
-    SUBROUTINE ORDER(NORB,NSTATES,Q,L)
-        IMPLICIT NONE 
-        INTEGER*4, INTENT(IN) :: NORB
-        INTEGER*4 :: NSTATES
-        REAL*8,allocatable :: Q(:,:),L(:)
-        INTEGER*4 :: I,J, TO_DEL(NSTATES), NB_DEL
-        REAL*8, ALLOCATABLE :: Q_O(:,:), L_O(:)
-        LOGICAL, ALLOCATABLE :: MK(:)
-        NB_DEL=0
-        TO_DEL(1)=0
-        DO I = 1,NSTATES
-            IF (NORM2(Q(I,:))<1.E-14) THEN 
-                NB_DEL=NB_DEL+1
-                TO_DEL(NB_DEL)=I
-            ENDIF 
-        ENDDO 
-        ALLOCATE(Q_O(NSTATES-NB_DEL,NORB),L_O(NSTATES-NB_DEL))
-        NB_DEL=1
-        J=1
-        DO I = 1,NSTATES
-            IF (I==TO_DEL(NB_DEL)) THEN 
-                NB_DEL=NB_DEL+1
-                CONTINUE
-            ELSE 
-                Q_O(J,:)=Q(I,:)
-                L_O(J)=L(I)
-                J=J+1
-            ENDIF
-        ENDDO
-        NSTATES=NSTATES-(NB_DEL-1)
-        DEALLOCATE(Q,L)
-        ALLOCATE(Q(NSTATES,NORB),L(NSTATES),MK(NSTATES))
-        MK=.TRUE.
-        DO I = 1,NSTATES
-            J=MINLOC(L_O,NSTATES,MK)
-            L(I)=L_O(J)
-            Q(I,:)=Q_O(J,:)
-            MK(J)=.FALSE.
-        ENDDO
-        DEALLOCATE(Q_O,L_O)
-        RETURN 
-    END SUBROUTINE
-
-    SUBROUTINE SET_POLE(N1,POLE1,N2,POLE2,NB)
-        implicit NONE 
-        INTEGER, INTENT(IN) :: N1,N2
-        REAL*8, INTENT(IN) :: POLE1(N1,2)
-        REAL*8 :: POLE2(N2,2)
-        INTEGER, INTENT(OUT) :: NB
-        INTEGER :: I,J,K
-        NB = 0
-        DO I = 1,N1
-            IF (I < N1) THEN
-                IF (ABS(POLE1(I,1)) .LT. 1.E-14 .AND. ABS(POLE1(I+1,1)) .LT. 1.E-14) EXIT
-            ENDIF
-            if (ABS(POLE1(I,2)) .GT. 1.E-12) THEN
-                DO J = 1,N2-1
-                    IF (ABS(POLE1(I,1)-POLE2(J,1)) .LT. 1.E-12) THEN
-                        POLE2(J,2) = POLE2(J,2) + POLE1(I,2)
-                        EXIT
-                    ELSE IF ((POLE1(I,1) .GT. POLE2(J,1) .AND. POLE1(I,1) .LT. POLE2(J+1,1))) THEN
-                        DO K = N2-1,J+1,-1
-                            POLE2(K+1,1) = POLE2(K,1)
-                            POLE2(K+1,2) = POLE2(K,2)
-                        ENDDO
-                        POLE2(J+1,1) = POLE1(I,1)
-                        POLE2(J+1,2) = POLE1(I,2)
-                        EXIT 
-                    ELSE IF (ABS(POLE2(J,1)) .LT. 1.E-14 .AND. ABS(POLE2(J+1,1)) .LT. 1.E-14) THEN
-                        POLE2(J,1) = POLE1(I,1)
-                        POLE2(J,2) = POLE1(I,2)
-                        EXIT
-                    ELSE IF (POLE1(I,1) .LT. POLE2(J,1) .AND. J .EQ. 1) THEN
-                        DO K = N2-1,J,-1
-                            POLE2(K+1,1) = POLE2(K,1)
-                            POLE2(K+1,2) = POLE2(K,2)
-                        ENDDO
-                        POLE2(J,1) = POLE1(I,1)
-                        POLE2(J,2) = POLE1(I,2)
-                        EXIT
-                    ENDIF
-                ENDDO
-            ENDIF
-        ENDDO
-        DO I = 1,N2
-            IF (ABS(POLE2(I,1)) .LT. 1.E-14 .AND. ABS(POLE2(I+1,1)) .LT. 1.E-14) THEN
-                EXIT
-            ELSE IF (ABS(POLE2(I,2)) .LT. 1.E-12) THEN
-                DO K = I,N2-1
-                    POLE2(K,1) = POLE2(K+1,1)
-                    POLE2(K,2) = POLE2(K+1,2)
-                ENDDO
-            ELSE
-                NB = NB + 1
-            ENDIF
-        ENDDO
-        RETURN 
-    END subroutine SET_POLE
 END MODULE FUNCMOD

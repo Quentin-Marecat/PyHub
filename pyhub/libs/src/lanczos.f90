@@ -22,6 +22,7 @@ SUBROUTINE LANCZOS()
     ALLOCATE(V0(NSTATES),V(NSTATES),V2(NSTATES))
     DO I = 1,NSTATES
         V(I)=RAND()-0.5
+    !    V(I)=1.
     ENDDO
     NR = NORM2(V)
     V=(1/NR)*V
@@ -65,10 +66,11 @@ SUBROUTINE LANCZOS()
             H(I,I+1)=BETA(I+1)
             H(I+1,I)=BETA(I+1)
         ENDDO
-!        write(*,'(6F10.6)') (alpha(i),i=nblcz-5+1,nblcz+1) 
-!        write(*,'(6F10.6)') (beta(i),i=nblcz-5+1,nblcz+1) 
+!        write(*,'(6F10.6)') (alpha(i),i=nblcz-5+1,nblcz) 
+!        write(*,'(6F10.6)') (beta(i),i=nblcz-5+2,nblcz+1) 
         H(NBLCZ,NBLCZ)=ALPHA(NBLCZ)
         CALL DIAGMAT(NBLCZ,H,VAL,VEC)
+!        write(*,'(6F10.6)') (VAL(i),i=1,5) 
         IF(ABS(VAL(NDEG+1)-EV)<ACC_LCZ) THEN
             IF (ABS(VAL(NDEG+1)-VAL(1))>ACC_LCZ .AND. (NDEG+1)>1) THEN 
                 CV=.TRUE.

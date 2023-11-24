@@ -137,10 +137,17 @@ SUBROUTINE READ_PSI_HUBBARD(EXC_STATE_)
     ! --- nstates
     CALL h5fopen_f('basis.h5',H5F_ACC_RDONLY_F, FILE_ID, ERROR)
     D1=(/1/)
-    call h5gopen_f(FILE_ID, 'basis',GRP_ID, ERROR )
-    call h5aopen_f(GRP_ID, 'nstates', DSET_ID, ERROR)
+    call h5aopen_f(FILE_ID, 'index', DSET_ID, ERROR)
+    call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, BASISINDEX_INT, D1, ERROR)
+    call h5aclose_f(DSET_ID, ERROR)
+    write(BASISINDEX, '(I0.3)') BASISINDEX_INT
+    call h5gopen_f(FILE_ID, BASISINDEX,GRP_ID, ERROR )
+    call h5gopen_f(GRP_ID, 'basis',SGRP_ID, ERROR )
+    
+    call h5aopen_f(SGRP_ID, 'nstates', DSET_ID, ERROR)
     call h5aread_f(DSET_ID, H5T_NATIVE_INTEGER, NSTATES_, D1, ERROR)
     call h5aclose_f(DSET_ID, ERROR)
+    call h5gclose_f(SGRP_ID, ERROR )
     call h5gclose_f(GRP_ID, ERROR )
     call h5fclose_f(FILE_ID,ERROR)
 

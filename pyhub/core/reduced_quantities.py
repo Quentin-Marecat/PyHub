@@ -10,11 +10,14 @@ class StaticQuantities():
 
     def compute_one_rdm(self):
         with h5py.File(self.filename_hubbard,"r") as file:
-            return {'up':np.einsum('jki,i->jk',file['reduced_quantities/density_matrix_up'],self.wgt/np.sum(self.wgt)),\
+            ordm =  {'up':np.einsum('jki,i->jk',file['reduced_quantities/density_matrix_up'],self.wgt/np.sum(self.wgt)),\
                 'down':np.einsum('jki,i->jk',file['reduced_quantities/density_matrix_down'],self.wgt/np.sum(self.wgt))}
+        return ordm
+
     def compute_ni(self):
         with h5py.File(self.filename_hubbard,"r") as file:
-            return np.einsum('ji,i->j',file['reduced_quantities/ni'],self.wgt/np.sum(self.wgt))
+            ni = np.einsum('ji,i->j',file['reduced_quantities/ni'],self.wgt/np.sum(self.wgt))
+        return ni
 
     @property
     def two_rdm(self):
@@ -78,12 +81,13 @@ class GreenFunction():
 
     def compute_gf(self):
         with h5py.File(self.filename_hubbard,"r") as file:
-            return {spin:np.array([[Pole.sum([\
+            gf = {spin:np.array([[Pole.sum([\
                 Pole({'positions':-self.e[b]+np.array(file[f'spgf/positions_greater_{spin}'],dtype=float), \
                     'weights':np.einsum('k,k->k',file[f'spgf/Q_greater_{spin}'][i,:self.nb_poles[1,0 if spin =='up' else 1],b],file[f'spgf/Q_greater_{spin}'][j,:self.nb_poles[1,0 if spin =='up' else 1],b])*w/np.sum(self.wgt)}).clean(wtol=1.e-8) +
                     Pole({'positions':self.e[b]-np.array(file[f'spgf/positions_lesser_{spin}'],dtype=float), \
                     'weights':np.einsum('k,k->k',file[f'spgf/Q_lesser_{spin}'][i,:self.nb_poles[0,0 if spin =='up' else 1],b],file[f'spgf/Q_lesser_{spin}'][j,:self.nb_poles[0,0 if spin =='up' else 1],b])*w/np.sum(self.wgt)}).clean(wtol=1.e-8)\
                 for b,w in enumerate(self.wgt)]) for i in range(self.nb_sites_comp)] for j in range(self.nb_sites_comp)],dtype = Pole) for spin in ['up','down']}
+        return gf
 
 
     @property 
@@ -101,7 +105,7 @@ class GreenFunction():
             return {spin:(self.e0-file[f'spgf/positions_greater_{spin}'][0]) for spin in ['up','down']}
     @property 
     def mu(self):
-        return {spin:(self.ip[spin] - self.ae[spin])/2 for spin in ['up','down']}
+        return {spin:(-self.ip[spin] - self.ae[spin])/2 for spin in ['up','down']}
 
     @property 
     def density_matrix_from_gf(self):

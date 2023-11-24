@@ -11,7 +11,7 @@ plt.matplotlib.rcParams.update({'figure.figsize': (12, 10),'figure.autolayout': 
     'font.size':30,'lines.linewidth':2.5,'lines.markersize':0.01,'lines.marker':'*'})
 
 np.set_printoptions(precision=4)
-nb_sites=10
+nb_sites=12
 nb_elec=nb_sites
 sz=-0.
 T = 0.
@@ -19,14 +19,18 @@ T = 0.
 t_matrix = np.diag(np.full(nb_sites-1,-1.),k=1) + np.diag(np.full(nb_sites-1,-1.),k=-1)
 t_matrix[0,-1],t_matrix[-1,0] = -1.,-1.  
 
-U = 2.
+U = 4.
 
 FH = FermiHubbard(nb_sites,nb_elec,sz,t_matrix,U,T=T)
-FH.kernel(max_lcz=1000,acc_lcz = 1.e-8,nb_comp_states=2,\
+FH.kernel(max_lcz=1000,acc_lcz = 1.e-8,nb_comp_states=1,\
     compute_rq_hubbard=False,compute_two_body=False,compute_spgf=True,verbose=True)
+
+print(f'mu :{FH.mu["up"]}')
+print(f'ae :{FH.ae["up"]}')
+print(f'ip :{FH.ip["up"]}')
     
 
-w_grid = np.linspace(-7,7,801)+FH.mu['up']
+w_grid = np.linspace(-7,7,501)+FH.mu['up']
 wticks = np.delete(np.around(np.linspace(w_grid[0],w_grid[-1],5),1),2)
 plt.plot(w_grid-FH.mu['up'], FH.gf['up'][0,0].spectral_density(w_grid,eta=0.03), color = clr[0],label=r'$\mathcal{S}(G^R(w))$')
 plt.plot(w_grid-FH.mu['up'], FH.gf0['up'][0,0].spectral_density(w_grid-FH.mu['up'],eta=0.03), color = clr[1],label=r'$\mathcal{S}(G^{0R}(w+\mu))$',linestyle='-')
@@ -51,7 +55,7 @@ plt.legend(loc='upper right',fontsize='25')
 plt.tight_layout()
 plt.savefig('self_energy')
 
-w_grid = np.linspace(-7,7,800)+FH.mu['up']
+w_grid = np.linspace(-7,7,801)+FH.mu['up']
 plt.clf()
 eta=0.03
 A = np.imag(FH.gf['up'][0,0].retarded(w_grid-1j*(eta-1.e-2),eta=eta))
