@@ -14,7 +14,7 @@ SUBROUTINE SOLVE_HUBBARD()
     IF (ERROR/=0) WRITE(6,*)" *** Error in solutions hdf5 files"
 
     IF (NSTATES<MAXLCZ) THEN
-        CALL EXACT_DIAG()
+        CALL EXACT_DIAG_()
     ELSE 
         CALL LANCZOS()
     ENDIF

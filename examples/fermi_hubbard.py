@@ -22,10 +22,9 @@ t_matrix = np.diag(np.full(nb_sites-1,-1.),k=1) + np.diag(np.full(nb_sites-1,-1.
 t_matrix[0,-1],t_matrix[-1,0] = -1.,-1.  
 
 U = 4.
-J=np.zeros((nb_sites,nb_sites))
 
-FH = FermiHubbard(nb_sites,nb_elec,sz,t_matrix,U,J=J,T=T,fock=False)
-FH.kernel(max_lcz=1000,acc_lcz = 1.e-8,nb_comp_states=1,\
+FH = FermiHubbard(nb_sites,nb_elec,sz,t_matrix,U,T=T,fock=False)
+FH.kernel(max_lcz=20000,acc_lcz = 1.e-8,nb_comp_states=1,\
     compute_rq_hubbard=True,compute_two_body=False,compute_spgf=False,verbose=True)
         
 print('Ground states')
