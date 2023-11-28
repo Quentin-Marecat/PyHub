@@ -9,7 +9,8 @@ class Basis():
 
     def __init__(self,nb_sites:int,hilbert:tuple=None,order:str='spin',memspace=None):
         self.nb_sites = nb_sites
-        self.exec = find_file('../','basis.x')
+        self.hilbert = hilbert
+        self.exec = find_file('../../','basis.x')
         self.path = self.exec.replace('basis.x', '')
         if isinstance(memspace,str):
             size,unit = float(re.sub(r'(\d+)\w?o?',r'\1',memspace)),re.sub(r'\d+(\w?o?)',r'\1',memspace)
@@ -250,3 +251,11 @@ class Basis():
     @property
     def nsdown(self):
         return self.nb_sdown
+
+    @property
+    def n_up(self):
+        return self.nup
+
+    @property
+    def n_down(self):
+        return self.ndown

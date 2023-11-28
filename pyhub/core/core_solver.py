@@ -17,8 +17,6 @@ __date__ = "January, 2023"
 class CoreSolver(Basis,GreenFunction,StaticQuantities):
     def __init__(self,nb_sites,n_up:int,n_down:int,exec_name,T=0.,order='spin'): 
         Basis.__init__(self,nb_sites,hilbert=(n_up,n_down),order=order)
-        self.n_up = n_up 
-        self.n_down = n_down
         self.T=T
         self.exec_name = exec_name
         self.t_matrix = np.zeros((nb_sites,nb_sites))

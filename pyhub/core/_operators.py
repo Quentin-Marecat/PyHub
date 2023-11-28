@@ -8,7 +8,7 @@ from pyhub.core.basis import Basis
 from scipy.linalg import eigh_tridiagonal
 from scipy.sparse import csc_matrix 
 
-class Operators():
+class Operators(Basis):
 
     def __init__(self,*args):
         self.coeff = [1.]
@@ -104,9 +104,12 @@ class Operators():
 
 
     def exec_operators(self):
-        with h5py.File(self.filename_basis,'a') as file:
-            file.attrs['size_index']=len(str(self._basis_index))
-            file.attrs['index']=self._basis_index
+        try:
+            with h5py.File(self.filename_basis,'a') as file:
+                file.attrs['lenelem2comp'] = 2
+                file.attrs['elem2comp'] = [self.n_up,self.n_down]
+        except:
+            raise AttributeError(f'Set the basis set using self.set_basis(YourBasis:Basis)')
         with h5py.File(self.filename_operators,'a') as file:
             file.attrs['size_index']=len(str(self._index))
             file.attrs['index']=self._index
@@ -142,10 +145,7 @@ class Operators():
 
 
     def set_basis(self,B:Basis,selected:np.ndarray=None,memspace='10Go'):
-        self._basis_index = B.index
-        self.nstates = B.nstates 
-        self.filename_basis = B.filename_basis
-        self.memspace = memspace
+        Basis.__init__(self,B.nb_sites,hilbert=B.hilbert,order=B.order)
         self.nb_selected = len(selected) if isinstance(selected,np.ndarray) else self.nstates
         self.selected = selected
         self._set_basis = True
@@ -154,13 +154,13 @@ class Operators():
         return self.__call__(psi,avg=True)
             
 
-    def __delitem__(self,k):
-        with h5py.File(self.filename_operators,"a") as file:
-            k_str = str(k)
-            while len(k_str)<3:
-                k_str = '0'+k_str
-            file.__delitem__(k_str)
-        return
+    # def __delitem__(self,k):
+    #     with h5py.File(self.filename_operators,"a") as file:
+    #         k_str = str(k)
+    #         while len(k_str)<3:
+    #             k_str = '0'+k_str
+    #         file.__delitem__(k_str)
+    #     return
 
 
     @property
@@ -272,43 +272,20 @@ class Operators():
 
     def _write_operator(self,max_len_ope=40):
         self.op2write = False
-        try:
-            self._set_basis
-        except AttributeError:
-            raise AttributeError(f'Set the basis set using self.set_basis(YourBasis:Basis)')
         self.exec = find_file('../','operators.x')
         self.path = self.exec.replace('operators.x', '')
 
-        size,unit = float(re.sub(r'(\d+)\w?o?',r'\1',self.memspace)),re.sub(r'\d+(\w?o?)',r'\1',self.memspace)
-        if unit == '':
-            self.memspace = size
-        elif unit == 'Ko':
-            self.memspace = size*10**3
-        elif unit == 'Mo':
-            self.memspace = size*10**6
-        elif unit == 'Go':
-            self.memspace = size*10**9
-        elif unit == 'To':
-            self.memspace = size*10**12
-        else:
-            raise ValueError(f'Set memspace as a correct string, not {self.memspace}')
         ## index attribtion
         if os.path.exists(self.filename_operators):
-            i=0
             with h5py.File(self.filename_operators,"a") as file:
                 list_index = np.array([*file.keys()],dtype=int)
-            while self.file_size > self.memspace and i <= len(list_index):
-                self.__delitem__(list_index[i])
-                i+=1
-            index = np.sort(list_index)
-            if len(index)>0:
-                self._index = index[0]-1 if index[0]>1 else index[-1]+1
+            self._index = list_index[-1]+1
         else:
             self._index = 1
         with h5py.File(self.filename_operators,'a') as f:
             grp = f.create_group(f'{self.index_str}')
             grp1 = grp.create_group(f'psi')
-            grp1.attrs['avg_value'] = 0.
+            grp1.attrs['avg_value'] = 0
             grp1.create_dataset('input', data=np.zeros(self.nstates),dtype = np.float64)
             grp1.create_dataset('output', data=np.zeros(self.nstates),dtype = np.float64)
         spin1 ,site1 ,spin2 ,site2 ,string = [np.zeros((max_len_ope,self.nb_ope),dtype=int) for _ in range(5)]
@@ -354,10 +331,6 @@ class Operators():
             grp.create_dataset('spin2_index', data=spin2)
             grp.attrs['nb_ope'] = self.nb_ope
             grp.attrs['max_nb_ope'] = max_len_ope
-            try:
-                grp.attrs['basis_index'] = self._basis_index
-            except:
-                raise AttributeError(f'Set the basis set using self.set_basis(YourBasis:Basis)')
 
 
 

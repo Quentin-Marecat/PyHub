@@ -7,12 +7,14 @@ from scipy.sparse.linalg import eigsh
 def fidelity(psi, phi):
     return np.absolute(np.dot(np.conjugate(psi), phi))**2
 
-nb_sites = nb_elec = 10
+nb_sites = 10
+nup = ndown = nb_sites//2
+hilbert = (nup,ndown)
 t_matrix = np.diag(np.full(nb_sites-1,-1.),k=1) + np.diag(np.full(nb_sites-1,-1.),k=-1)
 t_matrix[0,-1] = t_matrix[-1,0] = -1.
 U = 4.
 
-FH = FermiHubbard(nb_sites,nb_elec,0.,t_matrix,U)
+FH = FermiHubbard(nb_sites,*hilbert,t_matrix,U)
 #print(FH.basis)
 print('Call FermiHubbard class\nStart Lanczos diagonalisation')
 t0 = pc()
@@ -22,7 +24,7 @@ print(f'End\ntime {np.around(pc()-t0,4)}\nenergy : {FH.e0}\n')
 print('Set Fermi Hubbard Hamiltonian as an Operator')
 H = fermi_hubbard(t_matrix,U)
 print('Set Basis in Hilbert space')
-mbbasis = Basis(nb_sites,hilbert=(nb_elec,0.))
+mbbasis = Basis(nb_sites,hilbert=hilbert)
 H.set_basis(mbbasis)
 
 if H.nstates<200:

@@ -94,6 +94,7 @@ def opesum(lst):
 
 
 if __name__ == '__main__':
+    from pyhub.core.basis import Basis
     op1 = c_dagger_c((0,"u"),(1,"u"))
     op2 = n((0,"u")) + 3*n((1,"u"))
     op3 = 2.*op1+op2+op2 - op1
@@ -116,6 +117,7 @@ if __name__ == '__main__':
     # print('op2*op5\n',op6)
     # for op in op6:
     #     print(op)
+    mbbasis = Basis(4,hilbert=(2,2))
     print(op6)
-    print(op6.is_spin_restricted)
-    op6([1,2,3])
+    op6.set_basis(mbbasis)
+#    op6([1,2,3])
