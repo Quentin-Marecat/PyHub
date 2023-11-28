@@ -11,9 +11,8 @@ plt.matplotlib.rcParams.update({'figure.figsize': (12, 10),'figure.autolayout': 
     'font.size':30,'lines.linewidth':2.5,'lines.markersize':0.01,'lines.marker':'*'})
 
 np.set_printoptions(precision=4)
-nb_sites=12
-nb_elec=nb_sites
-sz=-0.
+nb_sites=6
+nup = ndown = nb_sites//2
 T = 0.
 
 t_matrix = np.diag(np.full(nb_sites-1,-1.),k=1) + np.diag(np.full(nb_sites-1,-1.),k=-1)
@@ -21,9 +20,9 @@ t_matrix[0,-1],t_matrix[-1,0] = -1.,-1.
 
 U = 4.
 
-FH = FermiHubbard(nb_sites,nb_elec,sz,t_matrix,U,T=T)
+FH = FermiHubbard(nb_sites,nup,ndown,t_matrix,U,T=T)
 FH.kernel(max_lcz=1000,acc_lcz = 1.e-8,nb_comp_states=1,\
-    compute_rq_hubbard=False,compute_two_body=False,compute_spgf=True,verbose=True)
+    compute_rq=False,compute_spgf=True,verbose=True)
 
 print(f'mu :{FH.mu["up"]}')
 print(f'ae :{FH.ae["up"]}')
@@ -81,7 +80,3 @@ plt.grid(True,which="both", linestyle='--')
 plt.legend(loc='upper right',fontsize='25') 
 plt.tight_layout()
 plt.savefig('propagator')
-
-
-FH.__basisremove__()
-FH.__hubbardremove__()

@@ -1,6 +1,6 @@
 SUBROUTINE SPGF_ED()
-    USE BASISMOD
     USE HUBMOD
+    USE BASISMOD
     USE FUNCMOD
     USE HDF5
     IMPLICIT NONE
@@ -19,7 +19,7 @@ SUBROUTINE SPGF_ED()
     NB_POLES(2,2) = INT(BINOM(NORB,NDOWN+1))  *INT(BINOM(NORB,NUP)) 
 
     CALL h5open_f(ERROR)
-    CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+    CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
     call h5gcreate_f(FILE_ID, 'spgf',GRP_ID, ERROR )
 
 
@@ -55,7 +55,6 @@ SUBROUTINE SPGF_ED()
     NELEC_ = NELEC
     NUP_ = NUP 
     NDOWN_ = NDOWN
-    SZ_ = SZ
     NSTATES_ = NSTATES
     NSUP_ = NSUP
     NSDOWN_ = NSDOWN
@@ -66,12 +65,12 @@ SUBROUTINE SPGF_ED()
     ! ---
     ! --- LESSER UP
     NELEC=NELEC_-1
-    SZ=SZ_-0.5
-    CALL BASIS()
+    NUP=NUP_-1
+    CALL READ_BASIS(NORB,NUP,NSUP,BUP)
     CALL EXACT_DIAG()
 
     CALL h5open_f(ERROR)
-    CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+    CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
     call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
     D1=(/NB_POLES(1,1)/)
     CALL h5screate_simple_f(1,D1, SPACE_ID, ERROR)
@@ -95,7 +94,7 @@ SUBROUTINE SPGF_ED()
         CALL GF_H_UP(Q)
 
         CALL h5open_f(ERROR)
-        CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+        CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
         call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
 
         D3=(/NW, NB_POLES(1,1),NORB2COMP/)
@@ -127,12 +126,12 @@ SUBROUTINE SPGF_ED()
     IF (NUP_.NE.NDOWN_) THEN
         IF (allocated(Q)) DEALLOCATE(Q)
         NELEC=NELEC_-1
-        SZ=SZ_+0.5
-        CALL BASIS()
+        NDOWN=NDOWN_-1
+        CALL READ_BASIS(NORB,NDOWN,NSDOWN,BDOWN)
         CALL EXACT_DIAG()
 
         CALL h5open_f(ERROR)
-        CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+        CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
         call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
         D1=(/NB_POLES(1,2)/)
         CALL h5screate_simple_f(1,D1, SPACE_ID, ERROR)
@@ -151,7 +150,7 @@ SUBROUTINE SPGF_ED()
             CALL GF_H_DOWN(Q)
             ! --- LESSER DOWN
             CALL h5open_f(ERROR)
-            CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+            CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
             call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
 
             D3=(/NW, NB_POLES(1,2),NORB2COMP/)
@@ -176,11 +175,11 @@ SUBROUTINE SPGF_ED()
     ENDIF
     ! --- GREATER UP
     NELEC=NELEC_+1
-    SZ=SZ_+0.5
-    CALL BASIS()
+    NUP=NUP_+1
+    CALL READ_BASIS(NORB,NUP,NSUP,BUP)
     CALL EXACT_DIAG()
     CALL h5open_f(ERROR)
-    CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+    CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
     call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
     D1=(/NB_POLES(2,1)/)
     CALL h5screate_simple_f(1,D1, SPACE_ID, ERROR)
@@ -204,7 +203,7 @@ SUBROUTINE SPGF_ED()
         CALL GF_E_UP(Q)
 
         CALL h5open_f(ERROR)
-        CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+        CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
         call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
 
         D3=(/NW, NB_POLES(2,1),NORB2COMP/)
@@ -235,11 +234,11 @@ SUBROUTINE SPGF_ED()
     ! --- GREATER DOWN
     IF (NUP_.NE.NDOWN_) THEN
         NELEC=NELEC_+1
-        SZ=SZ_-0.5
-        CALL BASIS()
+        NDOWN=NDOWN_+1
+        CALL READ_BASIS(NORB,NDOWN,NSDOWN,BDOWN)
         CALL EXACT_DIAG()
         CALL h5open_f(ERROR)
-        CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+        CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
         call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
         D1=(/NB_POLES(2,2)/)
         CALL h5screate_simple_f(1,D1, SPACE_ID, ERROR)
@@ -258,7 +257,7 @@ SUBROUTINE SPGF_ED()
             CALL GF_E_DOWN(Q)
 
             CALL h5open_f(ERROR)
-            CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+            CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
             call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
 
             D3=(/NW, NB_POLES(2,2),NORB2COMP/)
@@ -283,7 +282,7 @@ SUBROUTINE SPGF_ED()
 
 
     CALL h5open_f(ERROR)
-    CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+    CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
     call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
     D2=(/2,2/)
     CALL h5screate_simple_f(2,D2, SPACE_ID, ERROR)
@@ -303,7 +302,6 @@ END SUBROUTINE SPGF_ED
 
 
 SUBROUTINE GF_E_UP(Q)
-    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE
@@ -336,7 +334,6 @@ END SUBROUTINE
 
 
 SUBROUTINE GF_E_DOWN(Q)
-    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE
@@ -369,7 +366,6 @@ END SUBROUTINE
 
 
 SUBROUTINE GF_H_UP(Q)
-    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE
@@ -401,7 +397,6 @@ END SUBROUTINE
 
 
 SUBROUTINE GF_H_DOWN(Q)
-    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE

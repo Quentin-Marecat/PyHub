@@ -41,7 +41,7 @@ SUBROUTINE READ_BOLTZMANN()
     INTEGER(HSIZE_T), DIMENSION(1) :: D1
     IF (ALLOCATED(W)) DEALLOCATE(W)
     CALL h5open_f(ERROR)
-    CALL h5fopen_f('hubbard.h5',H5F_ACC_RDONLY_F, FILE_ID, ERROR)
+    CALL h5fopen_f('solver.h5',H5F_ACC_RDONLY_F, FILE_ID, ERROR)
     call h5gopen_f(FILE_ID, 'solve',GRP_ID, ERROR )
     D1=(/1/)
     call h5aopen_f(GRP_ID, 'nw', DSET_ID, ERROR)

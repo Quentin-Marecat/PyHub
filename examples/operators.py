@@ -7,7 +7,7 @@ from scipy.sparse.linalg import eigsh
 def fidelity(psi, phi):
     return np.absolute(np.dot(np.conjugate(psi), phi))**2
 
-nb_sites = nb_elec = 6
+nb_sites = nb_elec = 10
 t_matrix = np.diag(np.full(nb_sites-1,-1.),k=1) + np.diag(np.full(nb_sites-1,-1.),k=-1)
 t_matrix[0,-1] = t_matrix[-1,0] = -1.
 U = 4.

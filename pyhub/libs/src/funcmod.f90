@@ -3,21 +3,17 @@ MODULE FUNCMOD
     ! --- ALL FUNCTIONS USED
     ! ---
     CONTAINS
-    INTEGER*8 FUNCTION FACTO(K)
-        INTEGER*4,INTENT(IN)::K
-        INTEGER*4::I
-        FACTO=1 
-        DO I = 2,K
-            FACTO=FACTO*I 
-        ENDDO
-    END FUNCTION FACTO
-
-    INTEGER*8 FUNCTION BINOM(N,K)
-        INTEGER*4,INTENT(IN) :: N,K
-        BINOM=FACTO(N)/(FACTO(K)*FACTO(N-K))
-        IF (BINOM==0) BINOM=1
-    END FUNCTION BINOM
-
+    
+    recursive function BINOM(n, k) result(res)
+    integer*4, intent(in) :: n, k
+    integer*4 :: res
+    
+    if (k == 0 .or. k == n) then
+    res = 1
+    else
+    res = BINOM(n-1, k-1) + BINOM(n-1, k)
+    end if
+    end function BINOM
 
     INTEGER*4 FUNCTION KINOP(STATEI,POSI,POSF)
         INTEGER*4,INTENT(IN)::STATEI,POSI,POSF

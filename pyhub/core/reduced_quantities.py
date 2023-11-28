@@ -8,20 +8,22 @@ class StaticQuantities():
     def  __init__(self):
         pass
 
-    def compute_one_rdm(self):
-        with h5py.File(self.filename_hubbard,"r") as file:
+    @property
+    def one_rdm(self):
+        with h5py.File(self.filename,"r") as file:
             ordm =  {'up':np.einsum('jki,i->jk',file['reduced_quantities/density_matrix_up'],self.wgt/np.sum(self.wgt)),\
                 'down':np.einsum('jki,i->jk',file['reduced_quantities/density_matrix_down'],self.wgt/np.sum(self.wgt))}
         return ordm
 
-    def compute_ni(self):
-        with h5py.File(self.filename_hubbard,"r") as file:
+    @property
+    def ni(self):
+        with h5py.File(self.filename,"r") as file:
             ni = np.einsum('ji,i->j',file['reduced_quantities/ni'],self.wgt/np.sum(self.wgt))
         return ni
 
     @property
     def two_rdm(self):
-        with h5py.File(self.filename_hubbard,"r") as file:
+        with h5py.File(self.filename,"r") as file:
             return np.einsum('ijklb,b->lkji',file['reduced_quantities/dbl_occ'],self.wgt/np.sum(self.wgt))
 
     @property
@@ -42,7 +44,7 @@ class StaticQuantities():
         return self.ni
     @property
     def spin_cor_matrix(self):
-        with h5py.File(self.filename_hubbard,"r") as file:
+        with h5py.File(self.filename,"r") as file:
             return np.einsum('jki,i->jk',file['reduced_quantities/sisj'],self.wgt/np.sum(self.wgt))
     @property
     def s2(self):
@@ -64,7 +66,7 @@ class StaticQuantities():
 
     @property
     def e_two_body(self):
-        with h5py.File(self.filename_hubbard,"r") as file:
+        with h5py.File(self.filename,"r") as file:
             if file['input'].attrs['is_Uloc']:
                 return np.sum(self.ni*self.U)+ np.einsum('ijb,ij,b',file['reduced_quantities/sisj'],self.J_matrix,self.wgt/np.sum(self.wgt))
             else:
@@ -80,7 +82,7 @@ class GreenFunction():
         pass 
 
     def compute_gf(self):
-        with h5py.File(self.filename_hubbard,"r") as file:
+        with h5py.File(self.filename,"r") as file:
             gf = {spin:np.array([[Pole.sum([\
                 Pole({'positions':-self.e[b]+np.array(file[f'spgf/positions_greater_{spin}'],dtype=float), \
                     'weights':np.einsum('k,k->k',file[f'spgf/Q_greater_{spin}'][i,:self.nb_poles[1,0 if spin =='up' else 1],b],file[f'spgf/Q_greater_{spin}'][j,:self.nb_poles[1,0 if spin =='up' else 1],b])*w/np.sum(self.wgt)}).clean(wtol=1.e-8) +
@@ -92,16 +94,16 @@ class GreenFunction():
 
     @property 
     def nb_poles(self):
-        with h5py.File(self.filename_hubbard,"r") as file:
+        with h5py.File(self.filename,"r") as file:
             return np.array(file['spgf'].attrs['nb_poles'],dtype=int).T
 
     @property 
     def ip(self):
-        with h5py.File(self.filename_hubbard,"r") as file:
+        with h5py.File(self.filename,"r") as file:
             return {spin:(file[f'spgf/positions_lesser_{spin}'][0]-self.e0) for spin in ['up','down']}
     @property 
     def ae(self):
-        with h5py.File(self.filename_hubbard,"r") as file:
+        with h5py.File(self.filename,"r") as file:
             return {spin:(self.e0-file[f'spgf/positions_greater_{spin}'][0]) for spin in ['up','down']}
     @property 
     def mu(self):
@@ -113,7 +115,7 @@ class GreenFunction():
 
     @property 
     def one_rdm_from_gf(self):
-        with h5py.File(self.filename_hubbard,"r") as file:
+        with h5py.File(self.filename,"r") as file:
             if self.nup == self.ndown:
                 A = np.einsum('ikb,jkb,b->ij',file[f'spgf/Q_lesser_up'],file[f'spgf/Q_lesser_up'],self.wgt/np.sum(self.wgt))
                 return {'up':A,'down':A}
@@ -132,10 +134,10 @@ class GreenFunction():
     def self_energy(self,w,eta=0.05):
         if isinstance(w,(list,np.ndarray)):
             A = [self.self_energy(w_,eta=eta) for w_ in w]
-            with h5py.File(self.filename_hubbard,"r") as file:
+            with h5py.File(self.filename,"r") as file:
                 return {'up':np.array([[[A[k]['up'][i,j] for k in range(len(w))] for i in range(file['input'].attrs['nb_sites_comp'])] for j in range(file['input'].attrs['nb_sites_comp'])],dtype=np.complex128),\
                     'down':np.array([[[A[k]['down'][i,j] for k in range(len(w))] for i in range(file['input'].attrs['nb_sites_comp'])] for j in range(file['input'].attrs['nb_sites_comp'])],dtype=np.complex128)}
-        with h5py.File(self.filename_hubbard,"r") as file:
+        with h5py.File(self.filename,"r") as file:
             if self.nup == self.ndown:
                 A = np.linalg.pinv(np.einsum('ik,jk,k->ij',self.Vk,self.Vk,1./(w-self.ek+1j*eta))) - \
                     np.linalg.pinv(sum(\

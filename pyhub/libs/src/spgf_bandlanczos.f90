@@ -1,6 +1,6 @@
 SUBROUTINE SPGF_BANDLANCZOS()
-    USE BASISMOD
     USE HUBMOD
+    USE BASISMOD
     USE FUNCMOD
     USE HDF5
     IMPLICIT NONE
@@ -15,7 +15,7 @@ SUBROUTINE SPGF_BANDLANCZOS()
     INTEGER(HSIZE_T), DIMENSION(1) :: D1
 
     CALL h5open_f(ERROR)
-    CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+    CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
     call h5gcreate_f(FILE_ID, 'spgf',GRP_ID, ERROR )
 
     D3=(/NW, MAXLCZ,NORB2COMP/)
@@ -50,7 +50,6 @@ SUBROUTINE SPGF_BANDLANCZOS()
     NELEC_ = NELEC
     NUP_ = NUP 
     NDOWN_ = NDOWN
-    SZ_ = SZ
     NSTATES_ = NSTATES
     NSUP_ = NSUP
     NSDOWN_ = NSDOWN
@@ -65,8 +64,8 @@ SUBROUTINE SPGF_BANDLANCZOS()
         CALL READ_PSI_HUBBARD(EXC_STATE)
         ! --- LESSER UP
         NELEC=NELEC_-1
-        SZ=SZ_-0.5
-        CALL BASIS()
+        NUP = NUP_-1
+        CALL READ_BASIS(NORB,NUP,NSUP,BUP)
         ALLOCATE(PSI_LCZ(NSTATES,NORB2COMP))
         CALL LCZ_H_UP(PSI_LCZ)
         CALL GF_BANDLANCZOS(PSI_LCZ,COEFF_INIT)
@@ -83,7 +82,7 @@ SUBROUTINE SPGF_BANDLANCZOS()
         NB_POLES(1,1) = NBLCZ
         ! --- 
         CALL h5open_f(ERROR)
-        CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+        CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
         call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
         D1=(/ NBLCZ/)
         CALL h5screate_simple_f(1,D1, SPACE_ID, ERROR)
@@ -126,8 +125,8 @@ SUBROUTINE SPGF_BANDLANCZOS()
         ! --- LESSER DOWN
         IF (NUP_.NE.NDOWN_) THEN
             NELEC=NELEC_-1
-            SZ=SZ_+0.5
-            CALL BASIS()
+            NDOWN=NDOWN_-1
+            CALL READ_BASIS(NORB,NDOWN,NSDOWN,BDOWN)
             ALLOCATE(PSI_LCZ(NSTATES,NORB2COMP))
             CALL LCZ_H_DOWN(PSI_LCZ)
             CALL GF_BANDLANCZOS(PSI_LCZ,COEFF_INIT)
@@ -146,7 +145,7 @@ SUBROUTINE SPGF_BANDLANCZOS()
                    ! --- 
        ! --- 
             CALL h5open_f(ERROR)
-            CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+            CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
             call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
             D1=(/ NBLCZ/)
             CALL h5screate_simple_f(1,D1, SPACE_ID, ERROR)
@@ -176,8 +175,8 @@ SUBROUTINE SPGF_BANDLANCZOS()
         ENDIF
         ! --- GREATER UP
         NELEC=NELEC_+1
-        SZ=SZ_+0.5
-        CALL BASIS()
+        NUP=NUP_+1
+        CALL READ_BASIS(NORB,NUP,NSUP,BUP)
         ALLOCATE(PSI_LCZ(NSTATES,NORB2COMP))
         CALL LCZ_E_UP(PSI_LCZ)
         CALL GF_BANDLANCZOS(PSI_LCZ,COEFF_INIT)
@@ -195,7 +194,7 @@ SUBROUTINE SPGF_BANDLANCZOS()
 
        ! --- 
         CALL h5open_f(ERROR)
-        CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+        CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
         call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
         D1=(/ NBLCZ/)
         CALL h5screate_simple_f(1,D1, SPACE_ID, ERROR)
@@ -238,8 +237,8 @@ SUBROUTINE SPGF_BANDLANCZOS()
         ! --- GREATER DOWN
         IF (NUP_.NE.NDOWN_) THEN
             NELEC=NELEC_+1
-            SZ=SZ_-0.5
-            CALL BASIS()
+            NDOWN=NDOWN_+1
+            CALL READ_BASIS(NORB,NDOWN,NSDOWN,BDOWN)
             ALLOCATE(PSI_LCZ(NSTATES,NORB2COMP))
             CALL LCZ_E_DOWN(PSI_LCZ)
             CALL GF_BANDLANCZOS(PSI_LCZ,COEFF_INIT)
@@ -257,7 +256,7 @@ SUBROUTINE SPGF_BANDLANCZOS()
 
         ! --- 
             CALL h5open_f(ERROR)
-            CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+            CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
             call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
             D1=(/ NBLCZ/)
             CALL h5screate_simple_f(1,D1, SPACE_ID, ERROR)
@@ -288,7 +287,7 @@ SUBROUTINE SPGF_BANDLANCZOS()
         ENDIF
     ENDDO
     CALL h5open_f(ERROR)
-    CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+    CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
     call h5gopen_f(FILE_ID, 'spgf',GRP_ID, ERROR )
     D2=(/2,2/)
     CALL h5screate_simple_f(2,D2, SPACE_ID, ERROR)
@@ -308,7 +307,6 @@ END SUBROUTINE SPGF_BANDLANCZOS
 
 
 SUBROUTINE GF_BANDLANCZOS(V,COEFF_INIT)
-    USE BASISMOD 
     USE HUBMOD
     IMPLICIT NONE
     REAL*8, PARAMETER :: DF=1.E-10
@@ -453,7 +451,6 @@ END SUBROUTINE
 
 
 SUBROUTINE LCZ_E_UP(PSI_LCZ)
-    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE
@@ -481,7 +478,6 @@ END SUBROUTINE
 
 
 SUBROUTINE LCZ_E_DOWN(PSI_LCZ)
-    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE
@@ -509,7 +505,6 @@ END SUBROUTINE
 
 
 SUBROUTINE LCZ_H_UP(PSI_LCZ)
-    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE

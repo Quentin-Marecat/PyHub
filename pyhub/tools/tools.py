@@ -16,3 +16,10 @@ def count_bit(n):
         count += 1
         n &= (n - 1)
     return count
+
+
+def int2str(integer,lengh):
+    integer_str = str(integer)
+    while len(integer_str)<lengh:
+        integer_str = '0'+integer_str
+    return integer_str

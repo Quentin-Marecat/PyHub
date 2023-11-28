@@ -1,5 +1,4 @@
 SUBROUTINE LANCZOS()
-    USE BASISMOD
     USE HUBMOD
     USE HDF5
     ! -------------------------------------- !
@@ -8,7 +7,7 @@ SUBROUTINE LANCZOS()
     IMPLICIT NONE
     INTEGER*4, PARAMETER :: NADD=5
     INTEGER*4 :: I
-    REAL*8 :: EV,NR
+    REAL*8 :: EV,NR,NUMB,NORM
     REAL*8, ALLOCATABLE :: ALPHA(:),BETA(:),V0(:), V(:), V2(:)
     LOGICAL :: CV
     ! --- hdf5 --- !
@@ -33,7 +32,7 @@ SUBROUTINE LANCZOS()
     EV=0.
     NDEG=0
     CALL h5open_f(ERROR)
-    CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+    CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
     call h5gopen_f(FILE_ID, 'solve',GRP_ID, ERROR )
     call h5gcreate_f(GRP_ID, 'lanczos',SGRP_ID, ERROR )
     D2=(/NSTATES,MAXLCZ/)
@@ -42,7 +41,7 @@ SUBROUTINE LANCZOS()
     CALL h5screate_simple_f(2,D2,SPACE_ID,ERROR)
     CALL h5dcreate_f(SGRP_ID,'lanczos_vectors',H5T_NATIVE_DOUBLE,SPACE_ID,DSET_ID,ERROR)
     call h5screate_simple_f(1, D1, MEMSPACE,  ERROR)
-    DO WHILE(.NOT. CV .AND. NBLCZ < MAXLCZ-10)
+    DO WHILE(.NOT. CV .AND. NBLCZ .LE. MAXLCZ-10)
         DO I=1,NADD
             ! --- hdf5 write vector
             START=(/INT8(0),INT8(NBLCZ)/)
@@ -71,20 +70,26 @@ SUBROUTINE LANCZOS()
         H(NBLCZ,NBLCZ)=ALPHA(NBLCZ)
         CALL DIAGMAT(NBLCZ,H,VAL,VEC)
 !        write(*,'(6F10.6)') (VAL(i),i=1,5) 
-        IF(ABS(VAL(NDEG+1)-EV)<ACC_LCZ) THEN
+        CALL LANCZOS_NELEC(NUMB,NORM)
+        IF (ABS(1-NORM)>1.E-5) THEN
+            CV=.TRUE.
+            WRITE(*,*) 'FORTRAN LANCZOS ERROR: NORM LOST'
+        ELSE IF((ABS(VAL(NDEG+1)-EV)<ACC_LCZ) .AND. ((real(NELEC, 8)-NUMB)<ACC_LCZ)) THEN
             IF (ABS(VAL(NDEG+1)-VAL(1))>ACC_LCZ .AND. (NDEG+1)>1) THEN 
                 CV=.TRUE.
             ELSE
                 DEALLOCATE(VAL,VEC,H)
                 NDEG = NDEG+1
             ENDIF
-        ELSE
-            EV=VAL(NDEG+1)
-            DEALLOCATE(VAL,VEC,H)
+        ELSE 
+            if (NBLCZ .LE. MAXLCZ-10) then
+                EV=VAL(NDEG+1)
+                DEALLOCATE(VAL,VEC,H)
+            ENDIF
         ENDIF
         ALLOCATE(V2(NSTATES))
     ENDDO
-    IF (NBLCZ>MAXLCZ-10) THEN
+    IF (NBLCZ .GT. MAXLCZ-10) THEN
         WRITE(*,*) 'FORTRAN LANCZOS ERROR: MAX LCZ STEP REACH'
     ENDIF
 ! --- hdf5 lanczos --- !
@@ -126,6 +131,58 @@ SUBROUTINE LANCZOS()
     CALL h5fclose_f(FILE_ID,ERROR)
     IF (ERROR/=0) WRITE(6,*)" *** Error in LANCZOS hdf5 files"
     RETURN 
+
+    CONTAINS 
+    
+    subroutine LANCZOS_NELEC(NUMB,NORM)
+        USE HUBMOD
+        USE FUNCMOD 
+        USE HDF5
+        REAL*8,INTENT(OUT) :: NUMB,NORM
+        INTEGER*4 :: A,I,J,L1
+        REAL*8,ALLOCATABLE :: V_(:), V2_(:,:)
+        INTEGER :: ERROR
+        INTEGER(HID_T)  :: SSPACE_ID
+        INTEGER(HSIZE_T), DIMENSION(2) :: D2, START_2, COUNT_2
+        
+        ALLOCATE(V_(NSTATES))
+        ALLOCATE(V2_(NSTATES,NBLCZ))
+        START_2=(/0,0/)
+        COUNT_2=(/NSTATES,NBLCZ/)
+        CALL h5screate_simple_f(2,COUNT_2,SSPACE_ID,ERROR)
+        call h5sselect_hyperslab_f(SPACE_ID, H5S_SELECT_SET_F, START_2, COUNT_2, ERROR)
+!        call h5dopen_f(SGRP_ID, 'lanczos_vectors', DSET_ID, ERROR)
+        call h5dread_f(DSET_ID, H5T_NATIVE_DOUBLE,V2_, D2, ERROR,SSPACE_ID,SPACE_ID)
+        CALL h5sclose_f(SSPACE_ID,ERROR)
+
+        V_ = MATMUL(V2_,VEC(:,1))       
+        DEALLOCATE(V2_) 
+        NORM = NORM2(V_)
+!        V_ = V_/norm2(V_)
+        NUMB = 0.
+        DO J = 1,NORB
+            A = ISHFT(1,J-1)
+            DO I = 1,NSUP
+                IF (IAND(BUP(I),A).EQ.A) THEN
+                    DO L1 = 1,NSDOWN 
+                        NUMB=NUMB+V_((L1-1)*NSUP+I)**2
+                    ENDDO
+                ENDIF
+            ENDDO
+            IF (NUP.EQ.NDOWN) THEN
+                NUMB=NUMB*2
+            ELSE
+                DO L1 = 1,NSDOWN
+                    IF (IAND(BDOWN(L1),A).EQ.A) THEN
+                        DO I = 1,NSUP
+                            NUMB=NUMB+V_((L1-1)*NSUP+I)**2
+                        ENDDO
+                    ENDIF
+                ENDDO
+            ENDIF
+        ENDDO
+        DEALLOCATE(V_)
+        RETURN
+    END SUBROUTINE
+
 END SUBROUTINE
-
-

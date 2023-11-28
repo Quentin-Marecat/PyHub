@@ -1,5 +1,4 @@
 SUBROUTINE STATIC_RQ()
-    USE BASISMOD
     USE HUBMOD
     USE HDF5
     IMPLICIT NONE
@@ -13,7 +12,7 @@ SUBROUTINE STATIC_RQ()
     INTEGER(HSIZE_T), DIMENSION(2) :: D2,START2,COUNT2
     INTEGER(HSIZE_T), DIMENSION(1) :: D1
     CALL h5open_f(ERROR)
-    CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+    CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
     call h5gcreate_f(FILE_ID, 'reduced_quantities',GRP_ID, ERROR )
     D3=(/NW,NORB,NORB/)
     CALL h5screate_simple_f(3,D3, SPACE_ID, ERROR)
@@ -23,11 +22,13 @@ SUBROUTINE STATIC_RQ()
     CALL h5dclose_f(DSET_ID, ERROR)
     CALL h5sclose_f(SPACE_ID, ERROR)
 
-    D5=(/NW,NORB,NORB,NORB,NORB/)
-    CALL h5screate_simple_f(5,D5, SPACE_ID, ERROR)
-    call h5dcreate_f(GRP_ID, 'dbl_occ',H5T_NATIVE_DOUBLE, SPACE_ID, DSET_ID, ERROR)
-    CALL h5dclose_f(DSET_ID, ERROR)
-    CALL h5sclose_f(SPACE_ID, ERROR)
+    IF (DO_RQ_TB) THEN
+        D5=(/NW,NORB,NORB,NORB,NORB/)
+        CALL h5screate_simple_f(5,D5, SPACE_ID, ERROR)
+        call h5dcreate_f(GRP_ID, 'dbl_occ',H5T_NATIVE_DOUBLE, SPACE_ID, DSET_ID, ERROR)
+        CALL h5dclose_f(DSET_ID, ERROR)
+        CALL h5sclose_f(SPACE_ID, ERROR)
+    ENDIF
 
     D2=(/NW,NORB/)
     CALL h5screate_simple_f(2,D2, SPACE_ID, ERROR)
@@ -53,7 +54,7 @@ SUBROUTINE STATIC_RQ()
         CALL ONE_RDM(PSI,PSI,DENS_MAT)
 
         CALL h5open_f(ERROR)
-        CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+        CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
         call h5gopen_f(FILE_ID, 'reduced_quantities',GRP_ID, ERROR )
 
         D3=(/NW,NORB,NORB/)
@@ -82,21 +83,23 @@ SUBROUTINE STATIC_RQ()
         CALL TWO_RDM(PSI,PSI,DBL_OCC,NI)
 
         CALL h5open_f(ERROR)
-        CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+        CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
         call h5gopen_f(FILE_ID, 'reduced_quantities',GRP_ID, ERROR )
 
-        D5=(/NW,NORB,NORB,NORB,NORB/)
-        D4=(/NORB,NORB,NORB,NORB/)
-        START5=(/EXC_STATE-1,0,0,0,0/)
-        COUNT5=(/1,NORB,NORB,NORB,NORB/)
-        CALL h5screate_simple_f(5,D5, SPACE_ID, ERROR)
-        call h5screate_simple_f(4, D4, MEMSPACE_ID,  ERROR)
-        call h5sselect_hyperslab_f(SPACE_ID, H5S_SELECT_SET_F, START5, COUNT5, ERROR)
-        CALL h5dopen_f(GRP_ID, 'dbl_occ',DSET_ID, ERROR)
-        call h5dwrite_f(DSET_ID, H5T_NATIVE_DOUBLE, DBL_OCC, D4, ERROR, MEMSPACE_ID, SPACE_ID)
-        CALL h5dclose_f(DSET_ID, ERROR)
-        CALL h5sclose_f(SPACE_ID, ERROR)
-        CALL h5sclose_f(MEMSPACE_ID, ERROR)
+        IF (DO_RQ_TB) THEN
+            D5=(/NW,NORB,NORB,NORB,NORB/)
+            D4=(/NORB,NORB,NORB,NORB/)
+            START5=(/EXC_STATE-1,0,0,0,0/)
+            COUNT5=(/1,NORB,NORB,NORB,NORB/)
+            CALL h5screate_simple_f(5,D5, SPACE_ID, ERROR)
+            call h5screate_simple_f(4, D4, MEMSPACE_ID,  ERROR)
+            call h5sselect_hyperslab_f(SPACE_ID, H5S_SELECT_SET_F, START5, COUNT5, ERROR)
+            CALL h5dopen_f(GRP_ID, 'dbl_occ',DSET_ID, ERROR)
+            call h5dwrite_f(DSET_ID, H5T_NATIVE_DOUBLE, DBL_OCC, D4, ERROR, MEMSPACE_ID, SPACE_ID)
+            CALL h5dclose_f(DSET_ID, ERROR)
+            CALL h5sclose_f(SPACE_ID, ERROR)
+            CALL h5sclose_f(MEMSPACE_ID, ERROR)
+        ENDIF
         DEALLOCATE(DBL_OCC)
         D2=(/NW,NORB/)
         D1=(/NORB/)
@@ -120,7 +123,7 @@ SUBROUTINE STATIC_RQ()
         CALL J_SPIN(PSI,PSI,SMATRIX)
 
         CALL h5open_f(ERROR)
-        CALL h5fopen_f('hubbard.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
+        CALL h5fopen_f('solver.h5',H5F_ACC_RDWR_F, FILE_ID, ERROR)
         call h5gopen_f(FILE_ID, 'reduced_quantities',GRP_ID, ERROR )
 
         D3=(/NW,NORB,NORB/)
@@ -148,7 +151,6 @@ END SUBROUTINE
 
 
 SUBROUTINE ONE_RDM(BRA,KET,DENS_MAT)
-    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE
@@ -237,7 +239,6 @@ END subroutine ONE_RDM
 
 
 SUBROUTINE TWO_RDM(BRA,KET,DBL_OCC,NI)
-    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE
@@ -311,7 +312,6 @@ END subroutine TWO_RDM
 
 
 SUBROUTINE J_SPIN(BRA,KET,SMATRIX)
-    USE BASISMOD
     USE HUBMOD
     USE FUNCMOD
     IMPLICIT NONE
