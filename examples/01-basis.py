@@ -36,4 +36,4 @@ MBBasis = Basis(30)
 print(f'size : {np.around(MBBasis.file_size/10.**9,3)}Go')
 print(f'time {pc()-t0} s')
 
-os.remove('basis.h5')
+os.remove('*.h5')

@@ -4,6 +4,7 @@ from pyhub.tools.models import fermi_hubbard
 from pyhub.core.basis import Basis
 from time import perf_counter as pc
 from pyhub.tools.tools import fidelity
+import os
 
 nb_sites = 12
 nup = ndown = nb_sites//2
@@ -40,3 +41,5 @@ print('Start Lanczos diagonalisation')
 t0 = pc()
 ek,Vk = H.lanczos(maxstep=200,acc_lcz=1.e-8)
 print(f'time {np.around(pc()-t0,4)}\nenergy : {ek[0]}\nfidelity : {fidelity(FH.psi0,Vk[:,0])}')
+
+os.remove('*.h5')

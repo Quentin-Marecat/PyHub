@@ -3,8 +3,7 @@ from pyhub.tools.operators import n,_n,opesum, splus,sminus,sz, sisj, empty_oper
 from pyhub.tools.operators import c_dagger_c, c_dagger,_c
 from itertools import product
 from pyhub.core.basis import Basis
-from time import perf_counter as pc
-from pyhub.tools.tools import fidelity
+import os
 from pyhub.solver.heisenberg import Heisenberg
 
 np.set_printoptions(precision=4)
@@ -99,3 +98,5 @@ print(f'Energy from eigenvectors : {H4.avg(Vk[:,0])}')
 print('/!\ Warning : c_dagger and c not stable in hilbert space\nSet H4.stable as False -> Much slower calculation')
 H4.stable = False
 print(f'Energy from eigenvectors : {H4.avg(Vk[:,0])}')
+
+os.remove('*.h5')

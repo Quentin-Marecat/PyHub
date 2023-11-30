@@ -3,6 +3,7 @@ from pyhub.tools.operators import c_dagger_c, sisj
 from pyhub.tools.models import fermi_hubbard
 from pyhub.solver.fermi_hubbard import FermiHubbard
 from pyhub.core.basis import Basis
+import os
 
 nb_sites = 8
 nup = ndown = nb_sites//2
@@ -53,3 +54,5 @@ print(np.around(FH.one_rdm['up'],3))
 print(f'Spin correlation function')
 print(FH.spin_cor_matrix)
 print(f'S2 : {np.sum(FH.spin_cor_matrix)}')
+
+os.remove('*.h5')

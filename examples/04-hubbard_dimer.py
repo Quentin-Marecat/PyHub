@@ -1,9 +1,8 @@
 import numpy as np 
 from pyhub.tools.operators import c_dagger_c,n
 from pyhub.core.basis import Basis
-from time import perf_counter as pc
-def fidelity(psi, phi):
-    return np.absolute(np.dot(np.conjugate(psi), phi))**2
+import os
+from pyhub.tools.tools import fidelity
 
 nb_sites = 2
 t_matrix = np.zeros((2,2))
@@ -43,4 +42,4 @@ ek,Vk = np.linalg.eigh(H_mu.to_matrix)
 print(f'Ground-state energy {ek[0] + 2*mu}')
 print(f'Number of particles in the ground state : {np.around(N.avg(Vk[:,0]),3)}')
 
-
+os.remove('*.h5')

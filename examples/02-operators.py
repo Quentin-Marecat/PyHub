@@ -33,5 +33,4 @@ print('\nCompute average value of N over v, must be 2.')
 print(N.avg(v))
 print('\n'+"-"*40)
 
-os.remove('basis.h5')
-os.remove('operators.h5')
+os.remove('*.h5')

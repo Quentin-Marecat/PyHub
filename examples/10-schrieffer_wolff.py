@@ -6,6 +6,7 @@ from pyhub.tools.tools import fidelity
 from pyhub.core.basis import Basis
 from pyhub.tools.operators import empty_operator, n,c_dagger_c,_n, opeexp
 from time import perf_counter as pc
+import os 
 
 nb_sites = nb_elec = 2
 nup = ndown = nb_sites//2
@@ -77,9 +78,7 @@ print(f'Set Fermi-Hubbard Hamiltonian as Operator')
 H = fermi_hubbard(t_matrix,U)
 H.set_basis(mbbasis)
 print(f'Compute Psi fermi-hubbard')
-# print(psi_spin )
 psi_fh = opeexp(S,psi_spin,unitary = True)
-# print(S.to_matrix)
-# print(psi_fh)
-# print(FH.psi0)
 print(f'End\ntime {np.around(pc()-t0,4)}\nenergy error : {100-100*H.avg(psi_fh)/FH.e0} %\nfidelity : {fidelity(FH.psi0,psi_fh)}')
+
+os.remove('*.h5')

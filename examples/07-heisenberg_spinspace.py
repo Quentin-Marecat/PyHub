@@ -2,11 +2,10 @@ from pyhub.solver.heisenberg import Heisenberg
 import numpy as np
 from pyhub.tools.models import heisenberg
 from pyhub.tools.operators import n,opesum
-from itertools import product
 from pyhub.core.basis import Basis
 from time import perf_counter as pc
-def fidelity(psi, phi):
-    return np.absolute(np.dot(np.conjugate(psi), phi))**2
+from pyhub.tools.tools import fidelity
+import os
 
 np.set_printoptions(precision=4)
 nb_sites = 6
@@ -79,3 +78,5 @@ Hs = Heisenberg(nb_sites,J_matrix,T=0.)
 Hs.kernel(max_lcz=300,acc_lcz = 1.e-8,nb_comp_states=1,\
     compute_rq=False,verbose=True)
 print(f'End\ntime {np.around(pc()-t0,4)}\nenergy : {Hs.e0}\n')
+
+os.remove('*.h5')
