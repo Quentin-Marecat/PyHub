@@ -1,6 +1,8 @@
 from pyhub.solver.fermi_hubbard import FermiHubbard
 import numpy as np
 import matplotlib.pyplot as plt
+import os 
+
 ICGMmarine=(0.168,0.168,0.525)
 ICGMblue=(0,0.549,0.714)
 ICGMorange=(0.968,0.647,0)
@@ -81,3 +83,5 @@ plt.grid(True,which="both", linestyle='--')
 plt.legend(loc='upper right',fontsize='25') 
 plt.tight_layout()
 plt.savefig('propagator')
+
+os.remove('solver.h5')

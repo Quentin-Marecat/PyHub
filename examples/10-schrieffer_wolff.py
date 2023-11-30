@@ -81,4 +81,6 @@ print(f'Compute Psi fermi-hubbard')
 psi_fh = opeexp(S,psi_spin,unitary = True)
 print(f'End\ntime {np.around(pc()-t0,4)}\nenergy error : {100-100*H.avg(psi_fh)/FH.e0} %\nfidelity : {fidelity(FH.psi0,psi_fh)}')
 
-os.remove('*.h5')
+os.remove('basis.h5')
+os.remove('operator.h5')
+os.remove('solver.h5')

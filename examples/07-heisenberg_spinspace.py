@@ -79,4 +79,6 @@ Hs.kernel(max_lcz=300,acc_lcz = 1.e-8,nb_comp_states=1,\
     compute_rq=False,verbose=True)
 print(f'End\ntime {np.around(pc()-t0,4)}\nenergy : {Hs.e0}\n')
 
-os.remove('*.h5')
+os.remove('basis.h5')
+os.remove('operator.h5')
+os.remove('solver.h5')

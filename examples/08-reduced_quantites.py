@@ -55,4 +55,6 @@ print(f'Spin correlation function')
 print(FH.spin_cor_matrix)
 print(f'S2 : {np.sum(FH.spin_cor_matrix)}')
 
-os.remove('*.h5')
+os.remove('basis.h5')
+os.remove('operator.h5')
+os.remove('solver.h5')

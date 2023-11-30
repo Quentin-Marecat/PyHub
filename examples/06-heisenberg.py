@@ -99,4 +99,5 @@ print('/!\ Warning : c_dagger and c not stable in hilbert space\nSet H4.stable a
 H4.stable = False
 print(f'Energy from eigenvectors : {H4.avg(Vk[:,0])}')
 
-os.remove('*.h5')
+os.remove('basis.h5')
+os.remove('operator.h5')
