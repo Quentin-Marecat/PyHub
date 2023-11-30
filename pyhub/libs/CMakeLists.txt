@@ -4,7 +4,7 @@ enable_language(Fortran)
 
 # Currently setting the Fortran compiler to use -std=gnu, change this if you
 # want a specific standard
-set(FVERSION "-std=gnu")
+# set(FVERSION "-std=gnu")
 
 # BLAS
 if (NOT BLAS_LIBRARIES)

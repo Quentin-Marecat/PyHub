@@ -36,8 +36,21 @@ class CMakeBuild(build_ext):
 
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
+        # Ajout de la recherche automatique du compilateur Fortran
+        try:
+            fortran_compiler = os.environ["FC"]
+        except KeyError:
+            # Si FC n'est pas défini, essayez de trouver le compilateur Fortran par défaut
+            try:
+                fortran_compiler = (
+                    os.popen("which gfortran").read().strip() or
+                    os.popen("which ifort").read().strip()
+                )
+            except FileNotFoundError:
+                raise EnvironmentError("Compilateur Fortran non trouvé. Définissez la variable d'environnement FC ou assurez-vous que gfortran ou ifort est installé.")
 
-        cmake_args = [f"-S{src}", f"-B{self.build_temp}"]
+        cmake_args = [f"-S{src}", f"-B{self.build_temp}", f"-DCMAKE_Fortran_COMPILER={fortran_compiler}"]
+#        cmake_args = [f"-S{src}", f"-B{self.build_temp}"]
         if os.getenv("CMAKE_CONFIGURE_ARGS"):
             cmake_args += os.getenv("CMAKE_CONFIGURE_ARGS").split()
 
