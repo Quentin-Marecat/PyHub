@@ -88,6 +88,18 @@ class Basis():
         except:
             pass
 
+    def decompose(self,index):
+        if self.order=='spin':
+            return index & 2**self.nb_sites-1,index >> self.nb_sites
+        else:
+            up,down=0,0
+            for k in range(0,2*self.nb_sites,2):
+                if (index&2**k == 2**k):
+                    up += 2**(k//2)
+                if (index&2**(k+1)==2**(k+1)):
+                    down +=2**(k//2)
+            return up,down
+
     # def __delitem__(self,k):
     #     with h5py.File(self.filename_basis,"a") as file:
     #         k_str = str(k)
@@ -137,15 +149,7 @@ class Basis():
         string +='index | bit\n'
         string +='------|--'+'-'*(3*(self.nb_sites+1))+'\n'
         for index in self.basis[index]:
-            if self.order=='spin':
-                up,down = index & 2**self.nb_sites-1,index >> self.nb_sites
-            else:
-                up,down=0,0
-                for k in range(0,2*self.nb_sites,2):
-                    if (index&2**k == 2**k):
-                        up += 2**(k//2)
-                    if (index&2**(k+1)==2**(k+1)):
-                        down +=2**(k//2)
+            up,down = self.decompose(index)
             string += "{:4d}  |".format(index)
             for i in range(self.nb_sites):
                 if ((up >> i) & 1)!=1 and ((down >> i) & 1)!=1:
@@ -179,25 +183,25 @@ class Basis():
         return a_new,b_new
 
 
-    def hilbert_restricted(self,hilbert):
-        nup,ndown = hilbert
-        self.uplist = []
-        for up in self.basis_up:
-            if count_bit(up) == nup:
-                self.uplist.append(up)
-        self.downlist = []
-        for down in self.basis_down:
-            if count_bit(down) == ndown:
-                self.downlist.append(down)
-        return self.hilbert_index
-    @property
-    def hilbert_index(self):
-        with h5py.File(self.filename_basis,  "r") as file:
-            if self.order == 'spin':
-                elem = np.array([np.sum(self.spin_ordering(i,j)) for i,j in product(self.uplist,self.downlist)],dtype=int)
-            else:
-                elem = np.array([np.sum(self.site_ordering(i,j)) for i,j in product(self.uplist,self.downlist)],dtype=int)
-        return np.where(np.isin(self.basis, np.intersect1d(self.basis,elem)))[0]
+    # def hilbert_restricted(self,hilbert):
+    #     nup,ndown = hilbert
+    #     self.uplist = []
+    #     for up in self.basis_up:
+    #         if count_bit(up) == nup:
+    #             self.uplist.append(up)
+    #     self.downlist = []
+    #     for down in self.basis_down:
+    #         if count_bit(down) == ndown:
+    #             self.downlist.append(down)
+    #     return self.hilbert_index
+    # @property
+    # def hilbert_index(self):
+    #     with h5py.File(self.filename_basis,  "r") as file:
+    #         if self.order == 'spin':
+    #             elem = np.array([np.sum(self.spin_ordering(i,j)) for i,j in product(self.uplist,self.downlist)],dtype=int)
+    #         else:
+    #             elem = np.array([np.sum(self.site_ordering(i,j)) for i,j in product(self.uplist,self.downlist)],dtype=int)
+    #     return np.where(np.isin(self.basis, np.intersect1d(self.basis,elem)))[0]
 
 
     @property
@@ -211,13 +215,9 @@ class Basis():
     def basis(self):
         with h5py.File(self.filename_basis,  "r") as file:
             if self.order == 'spin':
-                return np.concatenate(([[np.sum(self.spin_ordering(i,j)) \
-                    for i,j in product(np.array(file[f'{int2str(self.nb_sites,2)}/{int2str(u,2)}/basis'],dtype=int),np.array(file[f'{int2str(self.nb_sites,2)}/{int2str(d,2)}/basis'],dtype=int))] \
-                    for u,d in product(self.nup,self.ndown)]))
+                return np.array([np.sum(self.spin_ordering(up,down)) for down,up in product(self.basis_down,self.basis_up)],dtype=int)
             elif self.order == 'site':
-                return np.concatenate(([[np.sum(self.site_ordering(i,j)) \
-                    for i,j in product(np.array(file[f'{int2str(self.nb_sites,2)}/{int2str(u,2)}/basis'],dtype=int),np.array(file[f'{int2str(self.nb_sites,2)}/{int2str(d,2)}/basis'],dtype=int))] \
-                    for u,d in product(self.nup,self.ndown)]))
+                return np.array([np.sum(self.site_ordering(up,down)) for down,up in product(self.basis_down,self.basis_up)],dtype=int)
     @property 
     def basis_up(self):
         with h5py.File(self.filename_basis,  "r") as file:

@@ -1,24 +1,15 @@
 import numpy as np 
-from pyhub.tools.operators import c_dagger_c, n, sisj, empty_operator
+from pyhub.tools.operators import c_dagger_c, n, sisj,  opesum
+from itertools import product
 
 def fermi_hubbard(t_matrix,U):
     nb_sites=t_matrix.shape[0]
-    H = empty_operator()
-    for i,_t in enumerate(t_matrix):
-        for j,t in enumerate(_t):
-            if np.abs(t)>1.e-14:
-                for spin in ['up','down']:
-                    H += t*c_dagger_c((i,spin),(j,spin))
-    for i in range(nb_sites):
-        H += U*n((i,'up'))*n((i,'down'))
-    return H
+    return opesum([t_matrix[i,j]*c_dagger_c((i,spin),(j,spin)) for i,j,spin in product(range(nb_sites),range(nb_sites),['up','down'])])\
+        + U*opesum([n((i,'up'))*n((i,'down')) for i in range(nb_sites)])
 
 def heisenberg(J_matrix):
-    H = empty_operator()
-    for i,_t in enumerate(J_matrix):
-        for j,t in enumerate(_t):
-            if np.abs(t)>1.e-14:
-                H += t*sisj((i,),(j,))
+    nb_sites=J_matrix.shape[0]
+    return opesum([J_matrix[i,j]*sisj((i,),(j,)) for i,j in product(range(nb_sites),range(nb_sites))])
     # for p in range(nb_sites):
     #     for q in range(nb_sites):
     #         if np.abs(J_matrix[p, q])>1.e-10:
@@ -26,4 +17,4 @@ def heisenberg(J_matrix):
     #                 -0.5 * ( c_dagger_c((p,'u'),(q,'u')) * c_dagger_c((q,'d'),(p,'d')) + c_dagger_c((p,'d'),(q,'d')) * c_dagger_c((q,'u'),(p,'u')) )  + \
     #                 ((n((p,'u')) - n((p,'d'))) / 2.) * ((n((q,'u')) - n((q,'d'))) / 2.) \
     #             )
-    return H
+    # return H

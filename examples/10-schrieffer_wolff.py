@@ -2,14 +2,14 @@ import numpy as np
 from pyhub.tools.models import heisenberg
 from pyhub.tools.models import fermi_hubbard
 from pyhub.solver.fermi_hubbard import FermiHubbard
+from pyhub.tools.tools import fidelity
 from pyhub.core.basis import Basis
 from pyhub.tools.operators import empty_operator, n,c_dagger_c,_n, opeexp
 from time import perf_counter as pc
 
-def fidelity(psi, phi):
-    return np.absolute(np.dot(np.conjugate(psi), phi))**2
-
-nb_sites = nb_elec = 10
+nb_sites = nb_elec = 2
+nup = ndown = nb_sites//2
+hilbert = (nup,ndown)
 t_matrix = np.diag(np.full(nb_sites-1,-1.),k=1) + np.diag(np.full(nb_sites-1,-1.),k=-1)
 t_matrix[0,-1] = t_matrix[-1,0] = -1.
 U = 10.
@@ -17,7 +17,7 @@ U_list = np.full(nb_sites,U)
 #theta = 1
 theta = (U/4)*np.arctan(4/U)
 
-FH = FermiHubbard(nb_sites,nb_elec,0.,t_matrix,U)
+FH = FermiHubbard(nb_sites,*hilbert,t_matrix,U)
 print('Call FermiHubbard class\nStart Lanczos diagonalisation')
 t0 = pc()
 FH.kernel(max_lcz=200,acc_lcz=1.e-8,store_H = True)
@@ -28,7 +28,7 @@ print('Set Heisenberg Hamiltonian as an Operator')
 t0 = pc()
 Hspin = heisenberg(-t_matrix)
 print('Set Basis in Hilbert space')
-mbbasis = Basis(nb_sites,hilbert=(nb_elec,0.))
+mbbasis = Basis(nb_sites,hilbert=hilbert)
 Hspin.set_basis(mbbasis)
 
 if Hspin.nstates<200:
@@ -36,7 +36,7 @@ if Hspin.nstates<200:
     Hmatrix = Hspin.to_matrix
     print('Start matrix diagonalisation in hilbert space')
     ek,Vk = np.linalg.eigh(Hmatrix)
-    psi_spin_ = Vk[:,0]
+    psi_spin = Vk[:,0]
 
 if Hspin.nstates>200:
     print('Start Lanczos diagonalisation in hilbert space')
@@ -69,10 +69,11 @@ for p in range(nb_sites):
                     * (c_dagger_c((p,spin),(q,spin)) - c_dagger_c((q,spin),(p,spin)))
 
 S*=-theta
-# for op in S:
-#     print(op)
+print('Print S')
+for op in S:
+    print(op)
 S.set_basis(mbbasis)
-print(f'Set Fermi-Hubbard Hamiltonian')
+print(f'Set Fermi-Hubbard Hamiltonian as Operator')
 H = fermi_hubbard(t_matrix,U)
 H.set_basis(mbbasis)
 print(f'Compute Psi fermi-hubbard')

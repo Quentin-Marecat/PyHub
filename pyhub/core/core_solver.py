@@ -37,6 +37,7 @@ class CoreSolver(Basis,GreenFunction,StaticQuantities):
         self.compute_tprf = False
         self.store_H = store_H
         self.verbose = verbose
+        self.nb_sites_comp = self.nb_sites if nb_sites_comp is None else nb_sites_comp
 
         self.exec = find_file('../../',self.exec_name)
         self.path = self.exec.replace(self.exec_name, '')
@@ -51,9 +52,7 @@ class CoreSolver(Basis,GreenFunction,StaticQuantities):
         if compute_rq:
             self.reduced_quantities()
         if compute_spgf:
-            self.nb_sites_comp = self.nb_sites if nb_sites_comp is None else nb_sites_comp
             self.spgf(nb_sites_comp=self.nb_sites_comp)
-            self.gf = self.compute_gf()
         self.time=pc()-tall
         self.printv(f'total elapsed time {np.around(self.time,4)} s\n')
 
@@ -81,9 +80,9 @@ class CoreSolver(Basis,GreenFunction,StaticQuantities):
 
     def spgf(self,nb_sites_comp=None):
         for nup in [-1,1]:
-            Basis(self.nb_sites,(self.n_up+nup,self.n_down))
+            Basis(self.nb_sites,([self.n_up[0]+nup],self.n_down))
         for ndown in [-1,1]:
-            Basis(self.nb_sites,(self.n_up,self.n_down+ndown))
+            Basis(self.nb_sites,(self.n_up,[self.n_down[0]+ndown]))
         with h5py.File(self.filename_basis,'a') as file:
             file.attrs['lenelem2comp'] = 2
             file.attrs['elem2comp'] = [self.n_up,self.n_down]
@@ -173,7 +172,7 @@ class CoreSolver(Basis,GreenFunction,StaticQuantities):
             return np.array(file['solve/boltzmann'],dtype=float)
     @property
     def Z(self):
-        return np.sum(self.boltzmann)
+        return np.sum(self.wgt)
 
 
     @property
@@ -193,7 +192,7 @@ class CoreSolver(Basis,GreenFunction,StaticQuantities):
         return self.e0
     @property 
     def e0(self):
-        return self.e[:self.nb_comp_states]@self.boltzmann/self.Z
+        return self.e[:self.nb_comp_states]@self.wgt/self.Z
     @property 
     def lcz_results(self):
         with h5py.File(self.filename,"r") as file:

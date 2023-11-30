@@ -14,9 +14,9 @@ SUBROUTINE HPROD(V,V1)
             DO I = 1,NSUP
                 BDOWNELEM = 2**NORB-1 - BUP(I)
                 IF (IAND(BUP(I),A) .EQ. A .AND. IAND(BDOWNELEM,A) .EQ. 0) THEN
-                    V1(I)=V1(I)+V(I)*0.5*J_MATRIX(J,K)
+                    V1(I)=V1(I)+V(I)*0.5*J_MATRIX(J,J)
                 ELSE IF (IAND(BUP(I),A) .EQ. 0 .AND. IAND(BDOWNELEM,A) .EQ. A) THEN
-                    V1(I)=V1(I)+V(I)*0.5*J_MATRIX(J,K)
+                    V1(I)=V1(I)+V(I)*0.5*J_MATRIX(J,J)
                 ENDIF
             ENDDO
         ENDIF
@@ -47,12 +47,12 @@ SUBROUTINE HPROD(V,V1)
                         ENDIF
                     ENDDO
                 ENDIF
-                DO I = 1,NSUP 
-                    BDOWNELEM = 2**NORB-1 - BUP(I)
-                    V1(I)=V1(I)+V(I)*&
-                    (N_J(BUP(I),J)-N_J(BDOWNELEM,J))*(N_J(BUP(I),K)-N_J(BDOWNELEM,K))*0.25*J_MATRIX(J,K)
-                ENDDO
-            ENDIF
+            endif
+            DO I = 1,NSUP 
+                BDOWNELEM = 2**NORB-1 - BUP(I)
+                V1(I)=V1(I)+V(I)*&
+                (N_J(BUP(I),J)-N_J(BDOWNELEM,J))*(N_J(BUP(I),K)-N_J(BDOWNELEM,K))*0.25*J_MATRIX(J,K)
+            ENDDO
         ENDDO
     ENDDO
     END subroutine

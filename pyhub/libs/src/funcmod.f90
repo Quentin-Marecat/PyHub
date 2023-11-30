@@ -31,22 +31,18 @@ MODULE FUNCMOD
         INTEGER*4,SAVE:: A2,I2
         ANTICOM=1.
         IF (POSI/=POSF) THEN
-            DO I2 =NO,1,-1
-                A2=ISHFT(1,I2-1)
-                IF (I2==POSI) THEN
-                    EXIT
-                ELSE IF (IAND(STATEI,A2)==A2) THEN
-                    ANTICOM=-ANTICOM
-                ENDIF
-            ENDDO
-            DO I2 =NO,1,-1
-                A2=ISHFT(1,I2-1)
-                IF (I2==POSF) THEN
-                    EXIT
-                ELSE IF (IAND(STATEF,A2)==A2) THEN
-                    ANTICOM=-ANTICOM
-                ENDIF
-            ENDDO
+            IF (POSI<NO) THEN
+                DO I2 =NO,POSI+1,-1
+                    A2=ISHFT(1,I2-1)
+                    IF (IAND(STATEI,A2)==A2) ANTICOM=-ANTICOM
+                ENDDO
+            ENDIF
+            IF (POSF<NO) THEN
+                DO I2 =NO,POSF+1,-1
+                    A2=ISHFT(1,I2-1)
+                    IF (IAND(STATEF,A2)==A2) ANTICOM=-ANTICOM
+                ENDDO
+            ENDIF
         ENDIF
         RETURN
     END FUNCTION

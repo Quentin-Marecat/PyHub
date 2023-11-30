@@ -70,11 +70,11 @@ SUBROUTINE LANCZOS()
         H(NBLCZ,NBLCZ)=ALPHA(NBLCZ)
         CALL DIAGMAT(NBLCZ,H,VAL,VEC)
 !        write(*,'(6F10.6)') (VAL(i),i=1,5) 
-        CALL LANCZOS_NELEC(NUMB,NORM)
+        CALL LANCZOS_NORM(NORM)
         IF (ABS(1-NORM)>1.E-5) THEN
             CV=.TRUE.
             WRITE(*,*) 'FORTRAN LANCZOS ERROR: NORM LOST'
-        ELSE IF((ABS(VAL(NDEG+1)-EV)<ACC_LCZ) .AND. ((real(NELEC, 8)-NUMB)<ACC_LCZ)) THEN
+        ELSE IF((ABS(VAL(NDEG+1)-EV)<ACC_LCZ) ) THEN
             IF (ABS(VAL(NDEG+1)-VAL(1))>ACC_LCZ .AND. (NDEG+1)>1) THEN 
                 CV=.TRUE.
             ELSE
@@ -134,11 +134,11 @@ SUBROUTINE LANCZOS()
 
     CONTAINS 
     
-    subroutine LANCZOS_NELEC(NUMB,NORM)
+    subroutine LANCZOS_NORM(NORM)
         USE HUBMOD
         USE FUNCMOD 
         USE HDF5
-        REAL*8,INTENT(OUT) :: NUMB,NORM
+        REAL*8,INTENT(OUT) :: NORM
         INTEGER*4 :: A,I,J,L1
         REAL*8,ALLOCATABLE :: V_(:), V2_(:,:)
         INTEGER :: ERROR
@@ -158,31 +158,7 @@ SUBROUTINE LANCZOS()
         V_ = MATMUL(V2_,VEC(:,1))       
         DEALLOCATE(V2_) 
         NORM = NORM2(V_)
-!        V_ = V_/norm2(V_)
-        NUMB = 0.
-        DO J = 1,NORB
-            A = ISHFT(1,J-1)
-            DO I = 1,NSUP
-                IF (IAND(BUP(I),A).EQ.A) THEN
-                    DO L1 = 1,NSDOWN 
-                        NUMB=NUMB+V_((L1-1)*NSUP+I)**2
-                    ENDDO
-                ENDIF
-            ENDDO
-            IF (NUP.EQ.NDOWN) THEN
-                NUMB=NUMB*2
-            ELSE
-                DO L1 = 1,NSDOWN
-                    IF (IAND(BDOWN(L1),A).EQ.A) THEN
-                        DO I = 1,NSUP
-                            NUMB=NUMB+V_((L1-1)*NSUP+I)**2
-                        ENDDO
-                    ENDIF
-                ENDDO
-            ENDIF
-        ENDDO
         DEALLOCATE(V_)
-        RETURN
     END SUBROUTINE
 
 END SUBROUTINE

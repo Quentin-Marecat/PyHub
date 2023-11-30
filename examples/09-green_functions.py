@@ -22,7 +22,8 @@ U = 4.
 
 FH = FermiHubbard(nb_sites,nup,ndown,t_matrix,U,T=T)
 FH.kernel(max_lcz=1000,acc_lcz = 1.e-8,nb_comp_states=1,\
-    compute_rq=False,compute_spgf=True,verbose=True)
+    compute_rq=False,verbose=True)
+FH.spgf()
 
 print(f'mu :{FH.mu["up"]}')
 print(f'ae :{FH.ae["up"]}')

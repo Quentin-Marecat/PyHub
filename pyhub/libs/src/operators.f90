@@ -64,56 +64,52 @@ SUBROUTINE C_DAGGER_C_UNRES(J,K,SPINK)
     REAL*8 :: PSI_WORK(NSTATES)
     INTEGER, INTENT(IN) :: J,K,SPINK
     INTEGER :: I,L1,NEW,POS,A,A2,I2,B2, NEW2,POS2,L2
-    REAL*8 :: AC,AC2
+    REAL*8 :: AC
     PSI_WORK = 0.
     A=ISHFT(1,J-1)
     A2=ISHFT(1,K-1)
+    AC=1
     IF (SPINK.EQ.1) THEN
         DO I = 1,NSUP
             ! --- REMOVE UP
-            NEW=IAND(BUP(I),A2)
-            IF (NEW .NE. 0) THEN
+            IF (IAND(BUP(I),A2) .NE. 0) THEN
+                NEW = BUP(I)-A2
                 POS=0
                 DO L1 = 1,NSUP 
                     IF (NEW==BUP(L1)) THEN
                         POS=L1
-                        AC=1
-                        DO I2 =NORB,1,-1
-                            B2=ISHFT(1,I2-1)
-                            IF (I2==K) THEN
-                                EXIT
-                            ELSE IF (IAND(BUP(I),B2)==B2) THEN
-                                AC=-AC
-                            ENDIF
-                        ENDDO
+                        IF (K<NORB) THEN
+                            DO I2 =NORB,K+1,-1
+                                B2=ISHFT(1,I2-1)
+                                IF (IAND(BUP(I),B2)==B2) AC=-AC
+                            ENDDO
+                        ENDIF
+                        EXIT
                     ENDIF
                 ENDDO
                 IF (POS .NE. 0) THEN
-                    AC2=1
-                    B2=ISHFT(1,I2-1)
-                    DO I2 =NORB,1,-1
-                        B2=ISHFT(1,I2-1)
-                        IF (IAND(BUP(POS),B2)==B2) AC2 = -1*AC2
-                    ENDDO
                     DO L1 = 1,NSDOWN 
-                        NEW2=IAND(BDOWN(L1),A)
-                        IF (NEW2 .EQ. 0) THEN
+                        IF (IAND(BDOWN(L1),A) .EQ. 0) THEN
+                            NEW2 = BDOWN(L1)+A
                             POS2=0
                             DO L2 = 1,NSDOWN 
                                 IF (NEW2==BDOWN(L2)) THEN
                                     POS2=L2
-                                    DO I2 =NORB,1,-1
+                                    DO I2 =NORB,1,-1 ! --- ANTICOMMUTATION FOR ELECTRON UP
                                         B2=ISHFT(1,I2-1)
-                                        IF (I2==J) THEN
-                                            EXIT
-                                        ELSE IF (IAND(BDOWN(L1),B2)==B2) THEN
-                                            AC2=-AC2
-                                        ENDIF
+                                        IF (IAND(BDOWN(L1),B2)==B2) AC=-AC
                                     ENDDO
+                                    IF (J<NORB) THEN
+                                        DO I2 =NORB,J+1,-1
+                                            B2=ISHFT(1,I2-1)
+                                            IF (IAND(BDOWN(L1),B2)==B2) AC=-AC
+                                        ENDDO
+                                    ENDIF
+                                    EXIT
                                 ENDIF
                             ENDDO
                             IF (POS2 .NE. 0) THEN
-                                PSI_WORK((POS2-1)*NSUP+POS)=PSI_WORK((POS2-1)*NSUP+POS)+AC*AC2*PSI_IN((L1-1)*NSUP+I)
+                                PSI_WORK((POS2-1)*NSUP+POS)=PSI_WORK((POS2-1)*NSUP+POS)+AC*PSI_IN((L1-1)*NSUP+I)
                             ENDIF
                         ENDIF
                     ENDDO
@@ -123,49 +119,44 @@ SUBROUTINE C_DAGGER_C_UNRES(J,K,SPINK)
     ELSE
         DO I = 1,NSDOWN
             ! --- REMOVE DOWN
-            NEW=IAND(BDOWN(I),A2)
-            IF (NEW .NE. 0) THEN
+            IF (IAND(BDOWN(I),A2) .NE. 0) THEN
+                NEW = BDOWN(I)-A2
                 POS=0
                 DO L1 = 1,NSDOWN
                     IF (NEW==BDOWN(L1)) THEN
                         POS=L1
-                        AC=1
-                        DO I2 =NORB,1,-1
-                            B2=ISHFT(1,I2-1)
-                            IF (I2==K) THEN
-                                EXIT
-                            ELSE IF (IAND(BDOWN(I),B2)==B2) THEN
-                                AC=-AC
-                            ENDIF
-                        ENDDO
+                        IF (K<NORB) THEN
+                            DO I2 =NORB,K+1,-1
+                                B2=ISHFT(1,I2-1)
+                                IF (IAND(BDOWN(I),B2)==B2) AC=-AC
+                            ENDDO
+                        ENDIF
+                        EXIT
                     ENDIF
                 ENDDO
                 IF (POS .NE. 0) THEN
-                    AC2=1
-                    B2=ISHFT(1,I2-1)
-                    DO I2 =NORB,1,-1
+                    DO I2 =NORB,1,-1 ! --- ANTICOMMUTATION FOR ELECTRON UP
                         B2=ISHFT(1,I2-1)
-                        IF (IAND(BDOWN(POS),B2)==B2) AC2 = -1*AC2
+                        IF (IAND(NEW,B2)==B2) AC=-AC
                     ENDDO
                     DO L1 = 1,NSUP
-                        NEW2=IAND(BUP(L1),A)
-                        IF (NEW2 .EQ. 0) THEN
+                        IF (IAND(BUP(L1),A) .EQ. 0) THEN
+                            NEW2 = BUP(L1)+A
                             POS2=0
                             DO L2 = 1,NSUP
                                 IF (NEW2==BUP(L2)) THEN
                                     POS2=L2
-                                    DO I2 =NORB,1,-1
-                                        B2=ISHFT(1,I2-1)
-                                        IF (I2==J) THEN
-                                            EXIT
-                                        ELSE IF (IAND(BUP(L1),B2)==B2) THEN
-                                            AC2=-AC2
-                                        ENDIF
-                                    ENDDO
+                                    IF (J<NORB) THEN
+                                        DO I2 =NORB,J+1,-1
+                                            B2=ISHFT(1,I2-1)
+                                            IF (IAND(BUP(L1),B2)==B2) AC=-AC
+                                        ENDDO
+                                    ENDIF
+                                    EXIT
                                 ENDIF
                             ENDDO
                             IF (POS2 .NE. 0) THEN
-                                PSI_WORK((POS-1)*NSUP+POS2)=PSI_WORK((POS-1)*NSUP+POS2)+AC*AC2*PSI_IN((I-1)*NSUP+L1)
+                                PSI_WORK((POS-1)*NSUP+POS2)=PSI_WORK((POS-1)*NSUP+POS2)+AC*PSI_IN((I-1)*NSUP+L1)
                             ENDIF
                         ENDIF
                     ENDDO
@@ -209,6 +200,20 @@ SUBROUTINE NI(J,SPIN)
     RETURN
 END subroutine NI
 
+! SUBROUTINE NINJ(J,K)
+!     USE BASISMOD
+!     USE OPEMOD
+!     USE FUNCMOD
+!     IMPLICIT NONE
+!     INTEGER,INTENT(IN) :: J,K
+!     INTEGER :: A,A2,U,D
+!     A=ISHFT(1,J-1)
+!     A2=ISHFT(1,K-1)
+!     DO U = 1,NSUP 
+!         IF (IAND(BUP(U),A) .EQ. A) THEN
+
+!     RETURN
+! END subroutine NI
 
 
 
@@ -420,3 +425,151 @@ SUBROUTINE SISJ(K,J)
     PSI_IN = PSI_WORK
     RETURN
 END subroutine SISJ
+
+
+
+SUBROUTINE C_DAGGER(J,SPIN_J)
+    ! --- c^\dag_jspinj
+    USE BASISMOD
+    USE OPEMOD
+    USE FUNCMOD
+    IMPLICIT NONE
+    REAL*8 :: PSI_WORK(NSTATES)
+    INTEGER, INTENT(IN) :: J,SPIN_J
+    INTEGER :: I,L1,NEW,POS,A,I2,B2,L2
+    REAL*8 :: AC
+    PSI_WORK = 0.
+    A=ISHFT(1,J-1)
+    AC=1
+    IF (SPIN_J.EQ.1) THEN
+        DO I = 1,NSUP
+            ! --- ADD UP
+            IF (IAND(BUP(I),A) .EQ. 0) THEN
+                NEW = BUP(I)+A
+                POS=0
+                DO L1 = 1,NSUP 
+                    IF (NEW==BUP(L1)) THEN
+                        POS=L1
+                        IF (J<NORB) THEN
+                            DO I2 =NORB,J+1,-1
+                                B2=ISHFT(1,I2-1)
+                                IF (IAND(BUP(I),B2)==B2) AC=-AC
+                            ENDDO
+                        ENDIF
+                        EXIT
+                    ENDIF
+                ENDDO
+                IF (POS .NE. 0) THEN
+                    DO L2 = 1,NSDOWN 
+                        DO I2 =NORB,1,-1 ! --- ANTICOMMUTATION FOR ELECTRON UP
+                            B2=ISHFT(1,I2-1)
+                            IF (IAND(BDOWN(L2),B2)==B2) AC=-AC
+                        ENDDO
+                        PSI_WORK((L2-1)*NSUP+POS)=PSI_WORK((L2-1)*NSUP+POS)+AC*PSI_IN((L2-1)*NSUP+I)
+                    ENDDO
+                ENDIF
+            ENDIF
+        ENDDO
+    ELSE
+        DO I = 1,NSDOWN
+            ! --- ADD DOWN
+            IF (IAND(BDOWN(I),A) .EQ. 0) THEN
+                NEW = BDOWN(I)+A
+                POS=0
+                DO L1 = 1,NSDOWN
+                    IF (NEW==BDOWN(L1)) THEN
+                        POS=L1
+                        IF (J<NORB) THEN
+                            DO I2 =NORB,J+1,-1
+                                B2=ISHFT(1,I2-1)
+                                IF (IAND(BDOWN(I),B2)==B2) AC=-AC
+                            ENDDO
+                        ENDIF
+                        EXIT
+                    ENDIF
+                ENDDO
+                IF (POS .NE. 0) THEN
+                    DO L1 = 1,NSUP
+                        PSI_WORK((POS-1)*NSUP+L1)=PSI_WORK((POS-1)*NSUP+L1)+AC*PSI_IN((I-1)*NSUP+L1)
+                    ENDDO
+                ENDIF
+            ENDIF
+        ENDDO
+    ENDIF
+    PSI_IN = PSI_WORK
+    RETURN
+END subroutine C_DAGGER
+
+
+
+SUBROUTINE C_(J,SPIN_J)
+    ! --- c^\dag_jspinj
+    USE BASISMOD
+    USE OPEMOD
+    USE FUNCMOD
+    IMPLICIT NONE
+    REAL*8 :: PSI_WORK(NSTATES)
+    INTEGER, INTENT(IN) :: J,SPIN_J
+    INTEGER :: I,L1,NEW,POS,A,I2,B2,L2
+    REAL*8 :: AC
+    PSI_WORK = 0.
+    A=ISHFT(1,J-1)
+    AC=1
+    IF (SPIN_J.EQ.1) THEN
+        DO I = 1,NSUP
+            ! --- REMOVE UP
+            IF (IAND(BUP(I),A) .NE. 0) THEN
+                NEW = BUP(I)-A
+                POS=0
+                DO L1 = 1,NSUP 
+                    IF (NEW==BUP(L1)) THEN
+                        POS=L1
+                        IF (J<NORB) THEN
+                            DO I2 =NORB,J+1,-1
+                                B2=ISHFT(1,I2-1)
+                                IF (IAND(BUP(I),B2)==B2) AC=-AC
+                            ENDDO
+                        ENDIF
+                        EXIT
+                    ENDIF
+                ENDDO
+                IF (POS .NE. 0) THEN
+                    DO L2 = 1,NSDOWN 
+                        DO I2 =NORB,1,-1 ! --- ANTICOMMUTATION FOR ELECTRON UP
+                            B2=ISHFT(1,I2-1)
+                            IF (IAND(BDOWN(L2),B2)==B2) AC=-AC
+                        ENDDO
+                        PSI_WORK((L2-1)*NSUP+POS)=PSI_WORK((L2-1)*NSUP+POS)+AC*PSI_IN((L2-1)*NSUP+I)
+                    ENDDO
+                ENDIF
+            ENDIF
+        ENDDO
+    ELSE
+        DO I = 1,NSDOWN
+            ! --- REMOVE DOWN
+            IF (IAND(BDOWN(I),A) .EQ. 0) THEN
+                NEW = BDOWN(I)-A
+                POS=0
+                DO L1 = 1,NSDOWN
+                    IF (NEW==BDOWN(L1)) THEN
+                        POS=L1
+                        IF (J<NORB) THEN
+                            DO I2 =NORB,J+1,-1
+                                B2=ISHFT(1,I2-1)
+                                IF (IAND(BDOWN(I),B2)==B2) AC=-AC
+                            ENDDO
+                        ENDIF
+                        EXIT
+                    ENDIF
+                ENDDO
+                IF (POS .NE. 0) THEN
+                    DO L1 = 1,NSUP
+                        PSI_WORK((POS-1)*NSUP+L1)=PSI_WORK((POS-1)*NSUP+L1)+AC*PSI_IN((I-1)*NSUP+L1)
+                    ENDDO
+                ENDIF
+            ENDIF
+        ENDDO
+    ENDIF
+    PSI_IN = PSI_WORK
+    RETURN
+END subroutine C_
