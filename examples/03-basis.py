@@ -41,4 +41,5 @@ for i,index in enumerate(index_):
     ek,Vk = np.linalg.eigh(S2[index].to_matrix) 
     print(ek)
 
-os.remove('*.h5')
+os.remove('basis.h5')
+os.remove('operator.h5')
