@@ -157,12 +157,12 @@ setup(
     "scipy>=1.1.0",
     "h5py>=2.7",
     ],
-    cmdclass={'install': InstallCommand},
     ext_modules=[CMakeExtension("pyhub/libs")],
     cmdclass={
         "build_ext": CMakeBuild,
         "test": DiscoverTests,
         "clean": CleanCommand,
+        'install': InstallCommand,
     },
     zip_safe=False,
 )
