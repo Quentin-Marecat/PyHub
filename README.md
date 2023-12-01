@@ -9,15 +9,14 @@ Installation
 To install, clone the repository
 
 ```
-git clone git@github.com:Quentin-Marecat/PyHub.git
+git clone https://github.com/Quentin-Marecat/PyHub.git
 ```
 
 Install HDF5-fortran libraries
 
 ```
-sudo apt install  libhdf5-dev
+sudo apt install  libhdf5-dev libhdf5-fortran-102
 
-sudo apt install libhdf5-fortran-102
 ```
 
 Install the package using `pip` from the top-level directory, which requires CMake
