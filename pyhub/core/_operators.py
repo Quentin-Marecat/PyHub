@@ -84,7 +84,8 @@ class Operators(Basis):
 
     def __getitem__(self, index):
         if isinstance(index, (list,np.ndarray)):
-            index = index.astype(int).tolist()
+            if isinstance(index,np.ndarray):
+                index = index.astype(int).tolist()
             other = Operators.empty_operator()
             other.set_basis(Basis(self.nb_sites,self.hilbert,self.order))
             other.coeff = self.coeff
@@ -95,6 +96,7 @@ class Operators(Basis):
             other._index = self._index
             other.selected = index 
             other.nb_selected = len(index)
+            other.max_len_ope = self.max_len_ope
             return other
 
     def _set_basis_elem(self,posu,posd,up,down):
@@ -113,15 +115,16 @@ class Operators(Basis):
             raise AttributeError(f'Set the basis set using self.set_basis(YourBasis:Basis)')
         if isinstance(psi[0],np.complex128):
             if not avg:
-                return self.__call__(psi.real,max_len_ope=20,avg=avg) + 1j*self.__call__(psi.imag,max_len_ope=20,avg=avg)
+                return self.__call__(psi.real,avg=avg) + 1j*self.__call__(psi.imag,avg=avg)
             else:
-                return self.__call__(psi.real,max_len_ope=20,avg=avg) + self.__call__(psi.imag,max_len_ope=20,avg=avg)
+                return self.__call__(psi.real,avg=avg) + self.__call__(psi.imag,avg=avg)
         with h5py.File(self.filename_operators,'a') as f:
             f[f'{self.index_str}/psi'].attrs['avg'] = avg
             f[f'{self.index_str}/psi'].attrs['avg_value'] = 0.
             if not isinstance(self.selected,(list,np.ndarray)):
                 f[f'{self.index_str}/psi/input'][:] = psi
             else:
+                print(psi)
                 f[f'{self.index_str}/psi/input'][:] = np.zeros(self.nstates)
                 f[f'{self.index_str}/psi/input'][self.selected] = psi
         if self.stable :
@@ -361,6 +364,7 @@ class Operators(Basis):
     def _write_operator(self,max_len_ope=40):
         self.op2write = False
         self.stable = True
+        self.max_len_ope = max_len_ope
         self.exec = find_file('../../','operators.x')
         self.path = self.exec.replace('operators.x', '')
 

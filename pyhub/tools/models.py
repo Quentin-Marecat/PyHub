@@ -4,8 +4,10 @@ from itertools import product
 
 def fermi_hubbard(t_matrix,U):
     nb_sites=t_matrix.shape[0]
+    if isinstance(U,(float,int)):
+        U = np.full(nb_sites,U)
     return opesum([t_matrix[i,j]*c_dagger_c((i,spin),(j,spin)) for i,j,spin in product(range(nb_sites),range(nb_sites),['up','down'])])\
-        + U*opesum([n((i,'up'))*n((i,'down')) for i in range(nb_sites)])
+        + opesum([U[i]*n((i,'up'))*n((i,'down')) for i in range(nb_sites)])
 
 def heisenberg(J_matrix):
     nb_sites=J_matrix.shape[0]

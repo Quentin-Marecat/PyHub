@@ -8,6 +8,8 @@ import shutil
 from setuptools import setup, find_packages, Extension, Command
 from setuptools.command.test import test
 from setuptools.command.build_ext import build_ext
+from setuptools.command.install import install
+import subprocess
 
 setup_src = os.path.dirname(os.path.realpath(__file__))
 
@@ -124,6 +126,23 @@ class DiscoverTests(test):
 
         pytest.main([src, *test_args])
 
+class InstallCommand(install):
+    def run(self):
+        # Exécute la méthode d'installation de la classe parente
+        install.run(self)
+
+        # Installez vos dépendances ici si elles ne sont pas déjà présentes
+        dependencies = [
+            "numpy>=1.19.0",
+            "scipy>=1.1.0",
+            "h5py>=2.7",
+        ]
+        for dependency in dependencies:
+            try:
+                __import__(dependency)
+            except ImportError:
+                subprocess.call(['pip', 'install', dependency])
+
 from distutils.command.build import build
 
 build.sub_commands = [c for c in build.sub_commands if c[0] == "build_ext"] + [
@@ -133,6 +152,12 @@ build.sub_commands = [c for c in build.sub_commands if c[0] == "build_ext"] + [
 setup(
     packages=find_packages(exclude=["*examples*"]),
     include_package_data=True,
+    install_requires=[
+    "numpy>=1.19.0",
+    "scipy>=1.1.0",
+    "h5py>=2.7",
+    ],
+    cmdclass={'install': InstallCommand},
     ext_modules=[CMakeExtension("pyhub/libs")],
     cmdclass={
         "build_ext": CMakeBuild,

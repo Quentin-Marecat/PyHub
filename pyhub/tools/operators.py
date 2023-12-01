@@ -115,6 +115,7 @@ def opeexp(op:Operators,psi,ftol=1.e-6,unitary=False):
             psi0[i] = 1.
             matrix[i,:] = opeexp(op,psi0)
             psi0[i] = 0.
+            
         return matrix
 
 

@@ -27,3 +27,5 @@ def int2str(integer,lengh):
 
 def fidelity(psi, phi):
     return np.absolute(np.dot(np.conjugate(psi), phi))**2
+
+# def convert2siteindex(psi,)
