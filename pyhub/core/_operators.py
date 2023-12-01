@@ -17,19 +17,12 @@ class Operators(Basis):
     def __add__(self,other):
         add = Operators.empty_operator()
         if isinstance(other,Operators):
-            index = np.where(np.isclose(other.coeff,0.))[0]
-            k=0
-            for i in index:
-                del other.coeff[i-k]
-                del other.elem_index[i-k]
-                del other.str_index[i-k]
-                k+=1
             add.coeff = self.coeff + other.coeff
             add.elem_index = self.elem_index + other.elem_index
             add.str_index = self.str_index + other.str_index
-            self.op2write = True
         elif isinstance(other,(float,int)):
-            return self + other*Operators._idt()
+            add = self + other*Operators._idt()
+            return add
         return add
 
     def __radd__(self,other):
@@ -38,19 +31,12 @@ class Operators(Basis):
     def __sub__(self,other):
         sub = Operators.empty_operator()
         if isinstance(other,Operators):
-            index = np.where(np.isclose(other.coeff,0.))[0]
-            k=0
-            for i in index:
-                del other.coeff[i-k]
-                del other.elem_index[i-k]
-                del other.str_index[i-k]
-                k+=1
             sub.coeff = self.coeff + [-1.*c for c in other.coeff]
             sub.elem_index = self.elem_index + other.elem_index
             sub.str_index = self.str_index + other.str_index
-            self.op2write = True
         elif isinstance(other,(float,int)):
-            return self + other*Operators._idt()
+            sub = self - other*Operators._idt()
+            return sub
         return sub
 
     def __rsub__(self,other):
@@ -58,7 +44,6 @@ class Operators(Basis):
 
     def __mul__(self,other):
         mul = Operators.empty_operator()
-        self.op2write = True
         if isinstance(other,Operators):
             mul.coeff = [c1*c2 for c1,c2 in product(self.coeff,other.coeff)]
             mul.elem_index = [[*c1,*c2] for c1,c2 in product(self.elem_index,other.elem_index)]
@@ -67,6 +52,18 @@ class Operators(Basis):
             mul.coeff = [other*c for c in self.coeff]
             mul.elem_index = self.elem_index
             mul.str_index = self.str_index
+        return mul
+
+    def __neg__(self):
+        mul = Operators.empty_operator()
+        mul.coeff = [-1.*c for c in self.coeff]
+        mul.elem_index = self.elem_index
+        mul.str_index = self.str_index
+        if not self.op2write:
+            mul.set_basis(Basis(self.nb_sites,self.hilbert,self.order))
+            mul.selected = self.selected
+            mul.nb_selected = self.nb_selected
+            mul._write_operator()
         return mul
 
     def __rmul__(self,other):
@@ -112,6 +109,8 @@ class Operators(Basis):
 
 
     def __call__(self,psi,avg=False):
+        if self.op2write:
+            raise AttributeError(f'Set the basis set using self.set_basis(YourBasis:Basis)')
         if isinstance(psi[0],np.complex128):
             if not avg:
                 return self.__call__(psi.real,max_len_ope=20,avg=avg) + 1j*self.__call__(psi.imag,max_len_ope=20,avg=avg)
@@ -172,12 +171,11 @@ class Operators(Basis):
                     return f[f'{self.index_str}/psi'].attrs['avg_value']
 
     def exec_operators(self):
-        try:
-            with h5py.File(self.filename_basis,'a') as file:
-                file.attrs['lenelem2comp'] = len(self.n_up)+len(self.n_down)
-                file.attrs['elem2comp'] = [*self.n_up,*self.n_down]
-        except:
+        if self.op2write:
             raise AttributeError(f'Set the basis set using self.set_basis(YourBasis:Basis)')
+        with h5py.File(self.filename_basis,'a') as file:
+            file.attrs['lenelem2comp'] = len(self.n_up)+len(self.n_down)
+            file.attrs['elem2comp'] = [*self.n_up,*self.n_down]
         with h5py.File(self.filename_operators,'a') as file:
             file.attrs['size_index']=len(str(self._index))
             file.attrs['index']=self._index
@@ -226,13 +224,9 @@ class Operators(Basis):
         return self.__call__(psi,avg=True)
             
 
-    # def __delitem__(self,k):
-    #     with h5py.File(self.filename_operators,"a") as file:
-    #         k_str = str(k)
-    #         while len(k_str)<3:
-    #             k_str = '0'+k_str
-    #         file.__delitem__(k_str)
-    #     return
+    def __delitem__(self):
+        with h5py.File(self.filename_operators,"a") as file:
+            file.__delitem__(self.index_str)
 
 
     @property
@@ -265,6 +259,8 @@ class Operators(Basis):
     
     @property
     def to_matrix(self):
+        if self.op2write:
+            raise AttributeError(f'Set the basis set using self.set_basis(YourBasis:Basis)')
         with h5py.File(self.filename_operators,'a') as f:
             f[f'{self.index_str}'].attrs['basis_elem'] = True
             f[f'{self.index_str}/psi'].attrs['avg'] = False
@@ -292,6 +288,8 @@ class Operators(Basis):
 #        return np.array([self@np.array([1. if j==i else 0. for j in range(self.nb_selected)]) for i in range(self.nb_selected)])
 
     def lanczos(self,maxstep=200,acc_lcz=1.e-8,neigen=1,init_states = None):
+        if self.op2write:
+            raise AttributeError(f'Set the basis set using self.set_basis(YourBasis:Basis)')
         with h5py.File('operators.h5','a') as f:
             if 'lanczos' in f[f'{self.index_str}'].keys():
                 f[f'{self.index_str}'].__delitem__('lanczos')
@@ -363,7 +361,7 @@ class Operators(Basis):
     def _write_operator(self,max_len_ope=40):
         self.op2write = False
         self.stable = True
-        self.exec = find_file('../','operators.x')
+        self.exec = find_file('../../','operators.x')
         self.path = self.exec.replace('operators.x', '')
 
         ## index attribtion
@@ -387,41 +385,43 @@ class Operators(Basis):
             grp1.create_dataset('output', data=np.zeros(self.nstates),dtype = np.float64)
         spin1 ,site1 ,spin2 ,site2 ,string = [np.zeros((max_len_ope,self.nb_ope),dtype=int) for _ in range(5)]
         nprod = np.zeros(self.nb_ope,dtype=int) 
-        for j,op in enumerate(self):
-            nprod[j] = len(op.elem_index[0])
-            for i,index in enumerate(op.elem_index[0]):
-                try:
-                    site1[i,j] = index[0][0]+1
-                    site2[i,j] = index[1][0]+1
-                except :
-                    pass
-                try : 
-                    spin1[i,j] = 1 if (index[0][1]==1 or index[0][1]=='u' or index[0][1]=='up' or index[0][1]=='+') else 2
-                    spin2[i,j] = 1 if (index[1][1]==1 or index[1][1]=='u' or index[1][1]=='up' or index[1][1]=='+') else 2
-                except :
-                    pass
-                if op.str_index[0][i] == 'c_dagger_c':
-                    string[i][j] = 1 if index[0][1] == index[1][1] else 9
-                elif op.str_index[0][i] == 'n':
-                    string[i][j] = 2
-                elif op.str_index[0][i] == 'id.':
-                    string[i][j] = 3
-                elif op.str_index[0][i] == '1_n':
-                    string[i][j] = 4
-                elif op.str_index[0][i] == 'sz':
-                    string[i][j] = 5
-                elif op.str_index[0][i] == 'splus':
-                    string[i][j] = 6
-                elif op.str_index[0][i] == 'sminus':
-                    string[i][j] = 7
-                elif op.str_index[0][i] == 'sisj':
-                    string[i][j] = 8
-                elif op.str_index[0][i] == 'c_dagger':
-                    string[i][j] = 10
-                elif op.str_index[0][i] == 'c':
-                    string[i][j] = 11
-                else :
-                    raise NotImplementedError
+        if len(self.coeff)>0 and len(self.str_index):
+            for j,op in enumerate(self):
+                nprod[j] = len(op.elem_index[0])
+                if nprod[j]>0:
+                    for i,index in enumerate(op.elem_index[0]):
+                        try:
+                            site1[i,j] = index[0][0]+1
+                            site2[i,j] = index[1][0]+1
+                        except :
+                            pass
+                        try : 
+                            spin1[i,j] = 1 if (index[0][1]==1 or index[0][1]=='u' or index[0][1]=='up' or index[0][1]=='+') else 2
+                            spin2[i,j] = 1 if (index[1][1]==1 or index[1][1]=='u' or index[1][1]=='up' or index[1][1]=='+') else 2
+                        except :
+                            pass
+                        if op.str_index[0][i] == 'c_dagger_c':
+                            string[i][j] = 1 if index[0][1] == index[1][1] else 9
+                        elif op.str_index[0][i] == 'n':
+                            string[i][j] = 2
+                        elif op.str_index[0][i] == 'id.':
+                            string[i][j] = 3
+                        elif op.str_index[0][i] == '1_n':
+                            string[i][j] = 4
+                        elif op.str_index[0][i] == 'sz':
+                            string[i][j] = 5
+                        elif op.str_index[0][i] == 'splus':
+                            string[i][j] = 6
+                        elif op.str_index[0][i] == 'sminus':
+                            string[i][j] = 7
+                        elif op.str_index[0][i] == 'sisj':
+                            string[i][j] = 8
+                        elif op.str_index[0][i] == 'c_dagger':
+                            string[i][j] = 10
+                        elif op.str_index[0][i] == 'c':
+                            string[i][j] = 11
+                        else :
+                            raise NotImplementedError
         with h5py.File('operators.h5','a') as f:
             grp = f.create_group(f'{self.index_str}/operators')
             grp.create_dataset('coeff', data=self.coeff)

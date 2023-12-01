@@ -88,25 +88,35 @@ class empty_operator(Operators):
         self.str_index = []
 
 def opeexp(op:Operators,psi,ftol=1.e-6,unitary=False):
-    conv=False
-    new_psi,full_psi,i,val = np.copy(psi),np.copy(psi),1,1.e3
-    nmr0 = np.linalg.norm(psi)
-    while not conv and i<100:
-        new_psi = op@new_psi/i
-        full_psi += new_psi
-        i+=1
-        nmr = full_psi.conj()@full_psi
-        if unitary:
-            if np.abs(nmr0-nmr)<ftol:
-                conv = True
-        else:
-            if np.abs(val-nmr)<ftol:
-                conv = True
+    if isinstance(psi,(list,np.ndarray)):
+        conv=False
+        new_psi,full_psi,i,val = np.copy(psi),np.copy(psi),1,1.e3
+        nmr0 = np.linalg.norm(psi)
+        while not conv and i<100:
+            new_psi = op@new_psi/i
+            full_psi += new_psi
+            i+=1
+            nmr = full_psi.conj()@full_psi
+            if unitary:
+                if np.abs(nmr0-nmr)<ftol:
+                    conv = True
             else:
-                val = nmr
-    if i==100:
-        raise ValueError('exponential operator does not converge')
-    return full_psi
+                if np.abs(val-nmr)<ftol:
+                    conv = True
+                else:
+                    val = nmr
+        if i==100:
+            raise ValueError('exponential operator does not converge')
+        return full_psi
+    else:
+        matrix = np.zeros((op.nb_selected,op.nb_selected))
+        psi0 = np.zeros(op.nb_selected)
+        for i in range(op.nb_selected):
+            psi0[i] = 1.
+            matrix[i,:] = opeexp(op,psi0)
+            psi0[i] = 0.
+        return matrix
+
 
 
 def opesum(lst):

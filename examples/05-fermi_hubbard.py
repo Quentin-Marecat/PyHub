@@ -43,5 +43,5 @@ ek,Vk = H.lanczos(maxstep=200,acc_lcz=1.e-8)
 print(f'time {np.around(pc()-t0,4)}\nenergy : {ek[0]}\nfidelity : {fidelity(FH.psi0,Vk[:,0])}')
 
 os.remove('basis.h5')
-os.remove('operator.h5')
+os.remove('operators.h5')
 os.remove('solver.h5')

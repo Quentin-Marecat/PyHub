@@ -34,4 +34,4 @@ print(N.avg(v))
 print('\n'+"-"*40)
 
 os.remove('basis.h5')
-os.remove('operator.h5')
+os.remove('operators.h5')

@@ -100,4 +100,4 @@ H4.stable = False
 print(f'Energy from eigenvectors : {H4.avg(Vk[:,0])}')
 
 os.remove('basis.h5')
-os.remove('operator.h5')
+os.remove('operators.h5')

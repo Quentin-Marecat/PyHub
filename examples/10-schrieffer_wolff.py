@@ -13,7 +13,7 @@ nup = ndown = nb_sites//2
 hilbert = (nup,ndown)
 t_matrix = np.diag(np.full(nb_sites-1,-1.),k=1) + np.diag(np.full(nb_sites-1,-1.),k=-1)
 t_matrix[0,-1] = t_matrix[-1,0] = -1.
-U = 10.
+U = 4
 U_list = np.full(nb_sites,U)
 #theta = 1
 theta = (U/4)*np.arctan(4/U)
@@ -69,18 +69,18 @@ for p in range(nb_sites):
                         )\
                     * (c_dagger_c((p,spin),(q,spin)) - c_dagger_c((q,spin),(p,spin)))
 
-S*=-theta
 print('Print S')
 for op in S:
     print(op)
 S.set_basis(mbbasis)
+print(S.to_matrix)
 print(f'Set Fermi-Hubbard Hamiltonian as Operator')
 H = fermi_hubbard(t_matrix,U)
 H.set_basis(mbbasis)
 print(f'Compute Psi fermi-hubbard')
-psi_fh = opeexp(S,psi_spin,unitary = True)
+psi_fh = opeexp(-theta*S,psi_spin,unitary = True)
 print(f'End\ntime {np.around(pc()-t0,4)}\nenergy error : {100-100*H.avg(psi_fh)/FH.e0} %\nfidelity : {fidelity(FH.psi0,psi_fh)}')
 
 os.remove('basis.h5')
-os.remove('operator.h5')
+os.remove('operators.h5')
 os.remove('solver.h5')

@@ -43,4 +43,4 @@ print(f'Ground-state energy {ek[0] + 2*mu}')
 print(f'Number of particles in the ground state : {np.around(N.avg(Vk[:,0]),3)}')
 
 os.remove('basis.h5')
-os.remove('operator.h5')
+os.remove('operators.h5')

@@ -44,4 +44,4 @@ for i,index in enumerate(index_):
     print(ek)
 
 os.remove('basis.h5')
-os.remove('operator.h5')
+os.remove('operators.h5')
