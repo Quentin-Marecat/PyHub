@@ -16,7 +16,6 @@ Install HDF5-fortran libraries
 
 ```
 sudo apt install  libhdf5-dev libhdf5-fortran-102
-
 ```
 
 Install the package using `pip` from the top-level directory, which requires CMake
