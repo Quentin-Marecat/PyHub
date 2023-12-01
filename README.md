@@ -26,6 +26,12 @@ Install the package using `pip` from the top-level directory, which requires CMa
 python -m pip install . --user
 ```
 
+Add `pyhub` in your .bashrc
+
+```
+export PYTHONPATH="${PYTHONPATH}:/path/you/install/PyHub/"
+```
+
 Quickstart
 ----------
 
