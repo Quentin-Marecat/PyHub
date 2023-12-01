@@ -471,6 +471,7 @@ class Operators(Basis):
 
 
     def find_stable_space(self):
+        print('Experimental function, do not use!')
         val = 0
         with h5py.File(self.filename_operators,'a') as f:
             f[f'{self.index_str}'].attrs['basis_elem'] = True

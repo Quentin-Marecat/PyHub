@@ -33,6 +33,8 @@ S2.set_basis(mbbasis_hilbert)
 #     H[i,:] = S2@psi 
 # ek,Vk=np.linalg.eigh(H)
 # print(ek)
+
+## Experimental, do not use !
 index_ = S2.find_stable_space()
 for i,index in enumerate(index_):
     print(f'\nStable space n°{i}')
