@@ -7,6 +7,7 @@ nb_sites = 2  ## number of sites to initialize basis class
 print(f'Set Basis in Fock space : ')
 MBBasis = Basis(nb_sites)
 print(f'full basis :\n{MBBasis[:]}')  ## Basis class can be used as an np.array
+print(f'{MBBasis.bit_repr()}')
 # print(f'Restriction to (nup=1,ndown=1) Hilbert space:')
 # hilbert_index = MBBasis.hilbert_restricted((nb_sites//2 , nb_sites//2))
 # print(MBBasis[hilbert_index])  

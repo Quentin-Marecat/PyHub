@@ -313,11 +313,12 @@ SUBROUTINE GF_E_UP(Q)
     DO SITEI = 1,NORB2COMP
         PSII=0.
         DO I = 1,NSUP_
-            A=ISHFT(1,SITEI-1)
-            IF (IAND(BUP_(I),A)==0) THEN
+            IF (.NOT. IS_PART(NORB,SITEI,BUP_(I))) THEN
+                A = CREATION(NORB,SITEI,BUP_(I))
                 DO J=1,NSUP
-                    IF (BUP(J)==BUP_(I)+A) THEN
-                        AC=ANTICOM2(NORB,BUP_(I),SITEI)
+                    IF (BUP(J)==A) THEN
+                        AC=ANTICOM(NORB,SITEI,BUP_(I))
+                        IF (MOD(NDOWN_,2)==1) AC = -AC
                         DO K = 1,NSDOWN
                             PSII((K-1)*NSUP+J)=AC*PSI((K-1)*NSUP_+I)
                         ENDDO
@@ -345,11 +346,11 @@ SUBROUTINE GF_E_DOWN(Q)
     DO SITEI = 1,NORB2COMP
         PSII=0.
         DO I = 1,NSDOWN_
-            A=ISHFT(1,SITEI-1)
-            IF (IAND(BDOWN_(I),A)==0) THEN
+            IF (.NOT. IS_PART(NORB,SITEI,BDOWN_(I))) THEN
+                A = CREATION(NORB,SITEI,BDOWN_(I))
                 DO J=1,NSDOWN
-                    IF (BDOWN_(I)+A==BDOWN(J)) THEN
-                        AC=ANTICOM2(NORB,BDOWN_(I),SITEI)
+                    IF (A==BDOWN(J)) THEN
+                        AC=ANTICOM(NORB,SITEI,BDOWN_(I))
                         DO K = 1,NSUP
                             PSII((J-1)*NSUP+K)=AC*PSI((I-1)*NSUP_+K)
                         ENDDO
@@ -377,11 +378,12 @@ SUBROUTINE GF_H_UP(Q)
     DO SITEI = 1,NORB2COMP
         PSII=0.
         DO I = 1,NSUP_
-            A=ISHFT(1,SITEI-1)
-            IF (IAND(BUP_(I),A)==A) THEN
+            IF (IS_PART(NORB,SITEI,BUP_(I))) THEN
+                A = ANNIHILATION(NORB,SITEI,BUP_(I))
                 DO J=1,NSUP
-                    IF (BUP(J)==BUP_(I)-A) THEN
-                        AC=ANTICOM2(NORB,BUP_(I),SITEI)
+                    IF (BUP(J)==A) THEN
+                        AC=ANTICOM(NORB,SITEI,BUP_(I))
+                        IF (MOD(NDOWN_,2)==1) AC = -AC
                         DO K = 1,NSDOWN
                             PSII((K-1)*NSUP+J)=AC*PSI((K-1)*NSUP_+I)
                         ENDDO
@@ -408,11 +410,11 @@ SUBROUTINE GF_H_DOWN(Q)
     DO SITEI = 1,NORB2COMP
         PSII=0.
         DO I = 1,NSDOWN_
-            A=ISHFT(1,SITEI-1)
-            IF (IAND(BDOWN_(I),A)==A) THEN
+            IF (IS_PART(NORB,SITEI,BDOWN_(I))) THEN
+                A=ANNIHILATION(NORB,SITEI,BDOWN_(I))
                 DO J=1,NSDOWN
-                    IF (BDOWN_(I)-A==BDOWN(J)) THEN
-                        AC=ANTICOM2(NORB,BDOWN_(I),SITEI)
+                    IF (A==BDOWN(J)) THEN
+                        AC=ANTICOM(NORB,SITEI,BDOWN_(I))
                         DO K = 1,NSUP
                             PSII((J-1)*NSUP+K)=AC*PSI((I-1)*NSUP_+K)
                         ENDDO

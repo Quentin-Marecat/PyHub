@@ -13,7 +13,7 @@ plt.matplotlib.rcParams.update({'figure.figsize': (12, 10),'figure.autolayout': 
     'font.size':30,'lines.linewidth':2.5,'lines.markersize':0.01,'lines.marker':'*'})
 
 np.set_printoptions(precision=4)
-nb_sites=6
+nb_sites=10
 nup = ndown = nb_sites//2
 T = 0.
 

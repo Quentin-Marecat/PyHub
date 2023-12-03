@@ -66,7 +66,7 @@ SUBROUTINE C_DAGGER_C_BASIS(SI,SJ,SPI,POSU_,POSD_,BUP_,BDOWN_,VAL)
     INTEGER*4 :: POSU_,POSD_,BUP_,BDOWN_
     INTEGER :: L1,NEW
     IF (SPI.EQ.1) THEN
-        NEW=KINOP(BUP_,SJ,SI)
+        NEW=KINOP(NORB,BUP_,SJ,SI)
         IF (NEW .NE. 0) THEN
             DO L1 = 1,NSUP 
                 IF (NEW==BUP(L1)) THEN
@@ -74,13 +74,14 @@ SUBROUTINE C_DAGGER_C_BASIS(SI,SJ,SPI,POSU_,POSD_,BUP_,BDOWN_,VAL)
                     EXIT 
                 ENDIF
             ENDDO
-            VAL=VAL*ANTICOM(NORB,SJ,BUP_,SI,NEW)
+            VAL=VAL*ANTICOM(NORB,SJ,BUP_)
+            VAL=VAL*ANTICOM(NORB,SI,NEW)
             BUP_ = NEW
         ELSE 
             VAL = 0.
         ENDIF
     ELSE
-        NEW=KINOP(BDOWN_,SJ,SI)
+        NEW=KINOP(NORB,BDOWN_,SJ,SI)
         IF (NEW.NE. 0) THEN
             DO L1 = 1,NSDOWN 
                 IF (NEW==BDOWN(L1)) THEN
@@ -88,7 +89,8 @@ SUBROUTINE C_DAGGER_C_BASIS(SI,SJ,SPI,POSU_,POSD_,BUP_,BDOWN_,VAL)
                     EXIT 
                 ENDIF
             ENDDO
-            VAL=VAL*ANTICOM(NORB,SJ,BDOWN_,SI,NEW)
+            VAL=VAL*ANTICOM(NORB,SJ,BDOWN_)
+            VAL=VAL*ANTICOM(NORB,SI,NEW)
             BDOWN_ = NEW
         ELSE 
             VAL = 0.
@@ -99,34 +101,32 @@ END subroutine
 
 SUBROUTINE NI_BASIS(SI,SPI,POSU_,POSD_,BUP_,BDOWN_,VAL)
     USE BASISMOD 
+    USE FUNCMOD
     USE OPEMOD
     IMPLICIT NONE
     INTEGER*4,INTENT(IN) :: SI,SPI
     REAL*8 :: VAL
     INTEGER*4 :: POSU_,POSD_,BUP_,BDOWN_
-    INTEGER*4 :: A
-    A=ISHFT(1,SI-1)
     IF (SPI .EQ. 1) THEN
-        IF (IAND(BUP_,A) .NE. A) VAL = 0.
+        IF (.NOT. IS_PART(NORB,SI,BUP_)) VAL = 0.
     ELSE
-        IF (IAND(BDOWN_,A) .NE. A) VAL = 0.
+        IF (.NOT. IS_PART(NORB,SI,BDOWN_)) VAL = 0.
     ENDIF
 END subroutine
 
 
 SUBROUTINE NIM1_BASIS(SI,SPI,POSU_,POSD_,BUP_,BDOWN_,VAL)
     USE BASISMOD 
+    USE FUNCMOD
     USE OPEMOD
     IMPLICIT NONE
     INTEGER*4,INTENT(IN) :: SI,SPI
     REAL*8 :: VAL
     INTEGER*4 :: POSU_,POSD_,BUP_,BDOWN_
-    INTEGER*4 :: A
-    A=ISHFT(1,SI-1)
     IF (SPI .EQ. 1) THEN
-        IF (IAND(BUP_,A) .EQ. A) VAL = 0.
+        IF (IS_PART(NORB,SI,BUP_)) VAL = 0.
     ELSE
-        IF (IAND(BDOWN_,A) .EQ. A) VAL = 0.
+        IF (IS_PART(NORB,SI,BDOWN_)) VAL = 0.
     ENDIF
 END subroutine
 
@@ -134,16 +134,12 @@ END subroutine
 SUBROUTINE SZ_BASIS(SI,BUP_,BDOWN_,VAL)
     USE BASISMOD 
     USE OPEMOD
+    USE FUNCMOD
     IMPLICIT NONE
-    INTEGER*4,INTENT(IN) :: SI
-    REAL*8 :: VAL2_,VAL
-    INTEGER*4 :: BUP_,BDOWN_
-    INTEGER*4 :: A
-    VAL2_=0.
-    A=ISHFT(1,SI-1)
-    IF (IAND(BUP_,A) .EQ. A) VAL2_=VAL2_+0.5
-    IF (IAND(BDOWN_,A) .EQ. A) VAL2_=VAL2_-0.5
-    VAL = VAL*VAL2_
+    INTEGER*4,INTENT(IN) :: SI,BUP_,BDOWN_
+    REAL*8 :: VAL
+    VAL = VAL*SZ(NORB,SI,BUP_,BDOWN_)
+    RETURN
 END subroutine
 
 
@@ -156,14 +152,13 @@ SUBROUTINE SISJ_BASIS(SI,SJ,POSU_,POSD_,BUP_,BDOWN_,VAL)
     INTEGER*4,INTENT(IN) :: SI,SJ
     REAL*8 :: VAL,VAL_
     INTEGER*4 :: POSU_,POSD_,BUP_,BDOWN_
-    INTEGER*4 :: A, SPIN
+    INTEGER*4 :: SPIN
     INTEGER :: L2,L3,NEW, NEW2
     IF (SI==SJ) THEN
-        A=ISHFT(1,SJ-1)
         ! --- (n_i\uparrow(1 - ni_\downarrow) + n_i\downarrow(1 - ni_\uparrow))/2
-        IF (IAND(BUP_,A) .EQ. A .AND. IAND(BDOWN_,A) .NE. A) THEN
+        IF (IS_PART(NORB,SJ,BUP_) .AND. .NOT. IS_PART(NORB,SJ,BDOWN_)) THEN
             VAL=VAL/2
-        ELSE IF (IAND(BUP_,A) .NE. A .AND. IAND(BDOWN_,A) .EQ. A) THEN
+        ELSE IF (.NOT. IS_PART(NORB,SJ,BUP_) .AND. IS_PART(NORB,SJ,BDOWN_)) THEN
             VAL=VAL/2
         ELSE 
             VAL = 0.
@@ -200,45 +195,30 @@ SUBROUTINE C_DAGGER_C_UNRES_BASIS(SI,SJ,SPJ,POSU_,POSD_,BUP_,BDOWN_,VAL)
     INTEGER*4,INTENT(IN) :: SI,SJ,SPJ
     REAL*8 :: VAL
     INTEGER*4 :: POSU_,POSD_,BUP_,BDOWN_
-    INTEGER*4 :: A, A2, I2, B2
-    INTEGER*4 :: L1,L2,L3,NEW, NEW2
-    A=ISHFT(1,SI-1)
-    A2=ISHFT(1,SJ-1)
+    INTEGER*4 :: I2, B2
+    INTEGER*4 :: L1,L2,L3,NEW, NEW2,A
     IF (SPJ.EQ.1) THEN
-        DO I2 =NORB,1,-1 ! --- ANTICOMMUTATION FOR ELECTRON UP
-            B2=ISHFT(1,I2-1)
-            IF (IAND(BDOWN_,B2)==B2) VAL=-VAL
-        ENDDO
         ! --- REMOVE UP
-        IF (IAND(BUP_,A2) .EQ. A2) THEN
-            NEW = BUP_ - A2
+        IF (IS_PART(NORB,SJ,BUP_)) THEN
+            NEW = ANNIHILATION(NORB,SJ,BUP_)
             DO L1 = 1,NSUP 
                 IF (NEW==BUP(L1)) THEN
                     POSU_=L1
                     EXIT
                 ENDIF
             ENDDO
-            IF (SJ<NORB) THEN
-                DO I2 =NORB,SJ+1,-1
-                    B2=ISHFT(1,I2-1)
-                    IF (IAND(BUP_,B2)==B2) VAL=-VAL
-                ENDDO
-            ENDIF
+            VAL=VAL*ANTICOM(NORB,SJ,BUP_)
             BUP_ = NEW
-            IF (IAND(BDOWN_,A) .EQ. 0) THEN
-                NEW2=BDOWN_ + A
+            IF (.NOT. IS_PART(NORB,SI,BDOWN_)) THEN
+                NEW2=CREATION(NORB,SI,BDOWN_)
                 DO L2 = 1,NSDOWN 
                     IF (NEW2==BDOWN(L2)) THEN
                         POSD_=L2
                         EXIT
                     ENDIF 
                 ENDDO
-                IF (SI<NORB) THEN
-                    DO I2 =NORB,SI+1,-1
-                        B2=ISHFT(1,I2-1)
-                        IF (IAND(BDOWN_,B2)==B2) VAL=-VAL
-                    ENDDO
-                ENDIF
+                VAL=VAL*ANTICOM(NORB,0,BDOWN_)
+                VAL=VAL*ANTICOM(NORB,SI,BDOWN_)
                 BDOWN_=NEW2
             ELSE
                 VAL=0.
@@ -248,39 +228,26 @@ SUBROUTINE C_DAGGER_C_UNRES_BASIS(SI,SJ,SPJ,POSU_,POSD_,BUP_,BDOWN_,VAL)
         ENDIF
     ELSE
         ! --- REMOVE DOWN
-        IF (IAND(BDOWN_,A2) .EQ. A2) THEN
-            NEW = BDOWN_-A2
-            DO I2 =NORB,1,-1 ! --- ANTICOMMUTATION FOR ELECTRON UP
-                B2=ISHFT(1,I2-1)
-                IF (IAND(NEW,B2)==B2) VAL=-VAL
-            ENDDO
+        IF (IS_PART(NORB,SJ,BDOWN_)) THEN
+            NEW = ANNIHILATION(NORB,SJ,BDOWN_)
             DO L1 = 1,NSDOWN
                 IF (NEW==BDOWN(L1)) THEN
                     POSD_=L1
                     EXIT 
                 ENDIF
             ENDDO
-            IF (SJ<NORB) THEN
-                DO I2 =NORB,SJ+1,-1
-                    B2=ISHFT(1,I2-1)
-                    IF (IAND(BDOWN_,B2)==B2) VAL=-VAL
-                ENDDO
-            ENDIF
+            VAL=VAL*ANTICOM(NORB,SJ,BDOWN_)
             BDOWN_ = NEW
-            IF (IAND(BUP_,A) .EQ. 0) THEN
-                NEW2 = BUP_+A
+            IF (.NOT. IS_PART(NORB,SI,BUP_)) THEN
+                VAL=VAL*ANTICOM(NORB,0,NEW)
+                NEW2 = CREATION(NORB,SI,BUP_)
                 DO L2 = 1,NSUP
                     IF (NEW2==BUP(L2)) THEN
                         POSU_=L2
                         EXIT 
                     ENDIF
                 ENDDO
-                IF (SI<NORB) THEN
-                    DO I2 =NORB,SI+1,-1
-                        B2=ISHFT(1,I2-1)
-                        IF (IAND(BUP_,B2)==B2) VAL=-VAL
-                    ENDDO
-                ENDIF
+                VAL=VAL*ANTICOM(NORB,SI,BUP_)
                 BUP_=NEW2
             ELSE 
                 VAL = 0.
@@ -302,49 +269,35 @@ SUBROUTINE C_DAGGER_BASIS(SI,SPI,POSU_,POSD_,BUP_,BDOWN_,VAL)
     INTEGER*4,INTENT(IN) :: SI,SPI
     REAL*8 :: VAL
     INTEGER*4 :: POSU_,POSD_,BUP_,BDOWN_
-    INTEGER*4 :: A, A2, I2, B2
+    INTEGER*4 :: I2, B2
     INTEGER*4 :: L1,L2,L3,NEW, NEW2
-    A=ISHFT(1,SI-1)
     IF (SPI.EQ.1) THEN
-        DO I2 =NORB,1,-1 ! --- ANTICOMMUTATION FOR ELECTRON UP
-            B2=ISHFT(1,I2-1)
-            IF (IAND(BDOWN_,B2)==B2) VAL=-VAL
-        ENDDO
         ! --- ADD UP
-        IF (IAND(BUP_,A) .EQ. 0) THEN
-            NEW = BUP_ + A
+        IF (.NOT. IS_PART(NORB,SI,BUP_)) THEN
+            NEW = CREATION(NORB,SI,BUP_)
             DO L1 = 1,NSUP 
                 IF (NEW==BUP(L1)) THEN
                     POSU_=L1
                     EXIT
                 ENDIF
             ENDDO
-            IF (SI<NORB) THEN
-                DO I2 =NORB,SI+1,-1
-                    B2=ISHFT(1,I2-1)
-                    IF (IAND(BUP_,B2)==B2) VAL=-VAL
-                ENDDO
-            ENDIF
+            VAL=VAL*ANTICOM(NORB,0,BDOWN_)
+            VAL=VAL*ANTICOM(NORB,SI,BUP_)
             BUP_ = NEW
         else
             VAL=0.
         ENDIF
     ELSE
         ! --- ADD DOWN
-        IF (IAND(BDOWN_,A) .EQ. 0) THEN
-            NEW = BDOWN_+A
+        IF (.NOT. IS_PART(NORB,SI,BDOWN_)) THEN
+            NEW = CREATION(NORB,SI,BDOWN_)
             DO L1 = 1,NSDOWN
                 IF (NEW==BDOWN(L1)) THEN
                     POSD_=L1
                     EXIT 
                 ENDIF
             ENDDO
-            IF (SI<NORB) THEN
-                DO I2 =NORB,SI+1,-1
-                    B2=ISHFT(1,I2-1)
-                    IF (IAND(BDOWN_,B2)==B2) VAL=-VAL
-                ENDDO
-            ENDIF
+            VAL=VAL*ANTICOM(NORB,SI,BDOWN_)
             BDOWN_ = NEW
         ELSE 
             VAL = 0.
@@ -362,49 +315,35 @@ SUBROUTINE C_BASIS(SI,SPI,POSU_,POSD_,BUP_,BDOWN_,VAL)
     INTEGER*4,INTENT(IN) :: SI,SPI
     REAL*8 :: VAL
     INTEGER*4 :: POSU_,POSD_,BUP_,BDOWN_
-    INTEGER*4 :: A, A2, I2, B2
+    INTEGER*4 :: A2, I2, B2
     INTEGER*4 :: L1,L2,L3,NEW, NEW2
-    A=ISHFT(1,SI-1)
     IF (SPI.EQ.1) THEN
-        DO I2 =NORB,1,-1 ! --- ANTICOMMUTATION FOR ELECTRON UP
-            B2=ISHFT(1,I2-1)
-            IF (IAND(BDOWN_,B2)==B2) VAL=-VAL
-        ENDDO
         ! --- REMOVE UP
-        IF (IAND(BUP_,A) .EQ. A) THEN
-            NEW = BUP_ - A
+        IF (IS_PART(NORB,SI,BUP_)) THEN
+            NEW = ANNIHILATION(NORB,SI,BUP_)
             DO L1 = 1,NSUP 
                 IF (NEW==BUP(L1)) THEN
                     POSU_=L1
                     EXIT
                 ENDIF
             ENDDO
-            IF (SI<NORB) THEN
-                DO I2 =NORB,SI+1,-1
-                    B2=ISHFT(1,I2-1)
-                    IF (IAND(BUP_,B2)==B2) VAL=-VAL
-                ENDDO
-            ENDIF
+            VAL=VAL*ANTICOM(NORB,0,BDOWN_)
+            VAL=VAL*ANTICOM(NORB,SI,BUP_)
             BUP_ = NEW
         else
             VAL=0.
         ENDIF
     ELSE
         ! --- REMOVE DOWN
-        IF (IAND(BDOWN_,A) .EQ. A) THEN
-            NEW = BDOWN_-A
+        IF (IS_PART(NORB,SI,BDOWN_)) THEN
+            NEW = ANNIHILATION(NORB,SI,BDOWN_)
             DO L1 = 1,NSDOWN
                 IF (NEW==BDOWN(L1)) THEN
                     POSD_=L1
                     EXIT 
                 ENDIF
             ENDDO
-            IF (SI<NORB) THEN
-                DO I2 =NORB,SI+1,-1
-                    B2=ISHFT(1,I2-1)
-                    IF (IAND(BDOWN_,B2)==B2) VAL=-VAL
-                ENDDO
-            ENDIF
+            VAL=VAL*ANTICOM(NORB,SI,BDOWN_)
             BDOWN_ = NEW
         ELSE 
             VAL = 0.

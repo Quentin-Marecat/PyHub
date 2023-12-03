@@ -20,6 +20,13 @@ class Operators(Basis):
             add.coeff = self.coeff + other.coeff
             add.elem_index = self.elem_index + other.elem_index
             add.str_index = self.str_index + other.str_index
+            index = np.where(np.abs(add.coeff)<1.e-14)[0]
+            k=0
+            for i in index:
+                del add.coeff[i-k]
+                del add.elem_index[i-k]
+                del add.str_index[i-k]
+                k+=1
         elif isinstance(other,(float,int)):
             add = self + other*Operators._idt()
             return add
@@ -34,13 +41,20 @@ class Operators(Basis):
             sub.coeff = self.coeff + [-1.*c for c in other.coeff]
             sub.elem_index = self.elem_index + other.elem_index
             sub.str_index = self.str_index + other.str_index
+            index = np.where(np.abs(sub.coeff)<1.e-14)[0]
+            k=0
+            for i in index:
+                del sub.coeff[i-k]
+                del sub.elem_index[i-k]
+                del sub.str_index[i-k]
+                k+=1
         elif isinstance(other,(float,int)):
             sub = self - other*Operators._idt()
             return sub
         return sub
 
     def __rsub__(self,other):
-        return self.__sub__(other)
+        return -1*self.__sub__(other)
 
     def __mul__(self,other):
         mul = Operators.empty_operator()
@@ -52,19 +66,31 @@ class Operators(Basis):
             mul.coeff = [other*c for c in self.coeff]
             mul.elem_index = self.elem_index
             mul.str_index = self.str_index
+            index = np.where(np.abs(mul.coeff)<1.e-14)[0]
+            k=0
+            for i in index:
+                del mul.coeff[i-k]
+                del mul.elem_index[i-k]
+                del mul.str_index[i-k]
+                k+=1
+            if not self.op2write:
+                mul.set_basis(Basis(self.nb_sites,self.hilbert,self.order))
+                mul.selected = self.selected
+                mul.nb_selected = self.nb_selected
+                mul._write_operator()
         return mul
 
     def __neg__(self):
-        mul = Operators.empty_operator()
-        mul.coeff = [-1.*c for c in self.coeff]
-        mul.elem_index = self.elem_index
-        mul.str_index = self.str_index
+        neg = Operators.empty_operator()
+        neg.coeff = [-1.*c for c in self.coeff]
+        neg.elem_index = self.elem_index
+        neg.str_index = self.str_index
         if not self.op2write:
-            mul.set_basis(Basis(self.nb_sites,self.hilbert,self.order))
-            mul.selected = self.selected
-            mul.nb_selected = self.nb_selected
-            mul._write_operator()
-        return mul
+            neg.set_basis(Basis(self.nb_sites,self.hilbert,self.order))
+            neg.selected = self.selected
+            neg.nb_selected = self.nb_selected
+            neg._write_operator()
+        return neg
 
     def __rmul__(self,other):
         return self.__mul__(other)
@@ -235,7 +261,7 @@ class Operators(Basis):
     @property
     def index_str(self):
         index_str = str(self._index)
-        while len(index_str)<3:
+        while len(index_str)<6:
             index_str = '0'+index_str
         return index_str
 
@@ -388,8 +414,9 @@ class Operators(Basis):
             grp1.create_dataset('input', data=np.zeros(self.nstates),dtype = np.float64)
             grp1.create_dataset('output', data=np.zeros(self.nstates),dtype = np.float64)
         spin1 ,site1 ,spin2 ,site2 ,string = [np.zeros((max_len_ope,self.nb_ope),dtype=int) for _ in range(5)]
-        nprod = np.zeros(self.nb_ope,dtype=int) 
-        if len(self.coeff)>0 and len(self.str_index):
+        coeff,nprod = np.zeros(self.nb_ope,dtype=np.float64) ,np.zeros(self.nb_ope,dtype=int) 
+        if len(self.coeff)>0:
+            coeff = self.coeff
             for j,op in enumerate(self):
                 nprod[j] = len(op.elem_index[0])
                 if nprod[j]>0:
@@ -428,13 +455,13 @@ class Operators(Basis):
                             raise NotImplementedError
         with h5py.File('operators.h5','a') as f:
             grp = f.create_group(f'{self.index_str}/operators')
-            grp.create_dataset('coeff', data=self.coeff)
+            grp.create_dataset('coeff', data=coeff)
             grp.create_dataset('str_index', data=string)
             grp.create_dataset('site1_index', data=site1)
             grp.create_dataset('spin1_index', data=spin1)
             grp.create_dataset('site2_index', data=site2)
             grp.create_dataset('spin2_index', data=spin2)
-            grp.attrs['nb_ope'] = self.nb_ope
+            grp.attrs['nb_ope'] = self.nb_ope if self.nb_ope>1 else 1
             grp.attrs['max_nb_ope'] = max_len_ope
 
 

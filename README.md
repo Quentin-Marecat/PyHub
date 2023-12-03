@@ -12,10 +12,10 @@ To install, clone the repository
 git clone https://github.com/Quentin-Marecat/PyHub.git
 ```
 
-Install HDF5-fortran libraries
+Install HDF5-fortran BLAS and LAPACK libraries
 
 ```
-sudo apt install  libhdf5-dev libhdf5-fortran-102
+sudo apt install  libhdf5-dev libhdf5-fortran-102 libopenblas-dev liblapack-dev
 ```
 
 Install the package using `pip` from the top-level directory, which requires CMake

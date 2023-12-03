@@ -7,7 +7,7 @@ SUBROUTINE LANCZOS()
     IMPLICIT NONE
     INTEGER*4, PARAMETER :: NADD=5
     INTEGER*4 :: I
-    REAL*8 :: EV,NR,NUMB,NORM
+    REAL*8 :: EV,NR,NORM
     REAL*8, ALLOCATABLE :: ALPHA(:),BETA(:),V0(:), V(:), V2(:)
     LOGICAL :: CV
     ! --- hdf5 --- !
@@ -139,7 +139,6 @@ SUBROUTINE LANCZOS()
         USE FUNCMOD 
         USE HDF5
         REAL*8,INTENT(OUT) :: NORM
-        INTEGER*4 :: A,I,J,L1
         REAL*8,ALLOCATABLE :: V_(:), V2_(:,:)
         INTEGER :: ERROR
         INTEGER(HID_T)  :: SSPACE_ID

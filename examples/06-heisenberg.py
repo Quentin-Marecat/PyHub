@@ -44,7 +44,9 @@ def spin_ham4(J_matrix):
     for p in range(nb_sites):
         for q in range(nb_sites):
             if p==q :
-                H += J_matrix[p,q]* ( c_dagger((p,'u'))*_c((p,'u'))*(1- c_dagger((p,'d'))*_c((p,'d'))) + c_dagger((p,'d'))*_c((p,'d'))*(1-c_dagger((p,'u'))*_c((p,'u'))) )/2
+#                H += J_matrix[p,q]* ( n((p,'up'))*_n((p,'down')) + n((p,'down'))*_n((p,'up')) )/2
+                H += J_matrix[p,q]* ( c_dagger((p,'u'))*_c((p,'u'))*(1 - c_dagger((p,'d'))*_c((p,'d'))) + c_dagger((p,'d'))*_c((p,'d'))*(1-c_dagger((p,'u'))*_c((p,'u'))) )/2
+#                H += J_matrix[p,q]* ( c_dagger((p,'u'))*_c((p,'u')) - c_dagger((p,'u'))*_c((p,'u'))*c_dagger((p,'d'))*_c((p,'d')) + c_dagger((p,'d'))*_c((p,'d')) - c_dagger((p,'d'))*_c((p,'d'))*c_dagger((p,'u'))*_c((p,'u')) )/2
             else:
                 H += J_matrix[p, q] * (\
                     -0.5 * ( c_dagger((p,'u'))*_c((q,'u')) * c_dagger((q,'d'))*_c((p,'d')) + c_dagger((p,'d'))*_c((q,'d')) * c_dagger((q,'u'))*_c((p,'u')) ) \
@@ -70,7 +72,7 @@ print(H2)
 print('Solve the Hamiltonian')
 H2.set_basis(mbbasis)
 ek,Vk = np.linalg.eigh(H2.to_matrix)
-#print(H2.to_matrix)
+print(H2.to_matrix)
 print(f'Ground-state energy {ek[0]}\n')
 
 print('Definie spin-hamiltonian in the 3rd way:')
@@ -79,12 +81,12 @@ print(H3)
 print('Solve the Hamiltonian')
 H3.set_basis(mbbasis)
 ek,Vk = np.linalg.eigh(H3.to_matrix)
-#print(H3.to_matrix)
+print(H3.to_matrix)
 print(f'Ground-state energy {ek[0]}\n')
 print(f'Energy from eigenvectors : {H3.avg(Vk[:,0])}')
 print('/!\ Warning : S+ and S- not stable in hilbert space\nSet H3.stable as False -> Much slower calculation')
 H3.stable = False
-print(f'Energy from eigenvectors : {H3.avg(Vk[:,0])}')
+print(f'Energy from eigenvectors : {H3.avg(Vk[:,0])}\n')
 
 print('Definie spin-hamiltonian in the 4th way:')
 H4 = spin_ham4(J_matrix)

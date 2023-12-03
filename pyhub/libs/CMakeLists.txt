@@ -16,6 +16,7 @@ else()
     message(STATUS "BLAS libraries: ${BLAS_LIBRARIES}")
 endif()
 
+
 if (APPLE)
     include_directories("${BLAS_LIBRARIES}/Frameworks/vecLib.framework/Headers")
 endif()
@@ -31,12 +32,17 @@ else()
 endif()
 
 # HDF5
-find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
+# find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
+find_package(HDF5 COMPONENTS Fortran REQUIRED)
 if (NOT HDF5_LIBRARIES)
     message(FATAL_ERROR "A required library with HDF5 API not found.")
 else()
     message(STATUS "HDF5 libraries: ${HDF5_LIBRARIES}")
+    message(STATUS "HDF5_INCLUDE_DIRS: ${HDF5_INCLUDE_DIRS}")
+    message(STATUS "HDF5_Fortran_LIBRARIES: ${HDF5_Fortran_LIBRARIES}")
+    include_directories(${HDF5_INCLUDE_DIRS})
 endif()
+
 
 
 # Fortran FLAGS

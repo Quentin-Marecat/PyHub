@@ -9,7 +9,7 @@ SUBROUTINE HPROD_(V,V2)
     V2 = 0.
     CALL TPROD(V,V2)
     CALL UPROD(V,V2)
-!    CALL JPROD(V,V2)
+    CALL JPROD(V,V2)
     RETURN
 END SUBROUTINE
 
@@ -20,16 +20,15 @@ SUBROUTINE HPROD(V,V1)
     IMPLICIT NONE
     REAL*8, INTENT(IN) :: V(NSTATES)
     REAL*8,INTENT(OUT) :: V1(NSTATES)
-    INTEGER :: I,J,K,M,N,L1,L2,NEW,NEW2,POS,POS2,A,U,D
+    INTEGER :: J,K,M,N,L1,L2,NEW,NEW2,POS,POS2,U,D
     REAL*8 :: AC,AC2
     V1 = 0.
     DO J = 1,NORB 
-        A = ISHFT(1,J-1)
         IF (IS_ULOC .EQ. 2) THEN
             DO U = 1,NSUP 
-                IF (IAND(BUP(U),A) .EQ. A) THEN
+                IF (IS_PART(NORB,J,BUP(U))) THEN
                     DO D = 1,NSDOWN
-                        IF (IAND(BDOWN(D),A) .EQ. A) V1((D-1)*NSUP+U)=V1((D-1)*NSUP+U)+V((D-1)*NSUP+U)*ULDIAG(J)
+                        IF (IS_PART(NORB,J,BDOWN(D)))  V1((D-1)*NSUP+U)=V1((D-1)*NSUP+U)+V((D-1)*NSUP+U)*ULDIAG(J)
                     ENDDO
                 ENDIF
             ENDDO 
@@ -37,7 +36,7 @@ SUBROUTINE HPROD(V,V1)
         DO K = 1,NORB
             IF ((ABS(T(J,K)) .GE. 1.E-14) .OR. (UPARTIAL(J,K) .GE. 1.E-14)) THEN
                 DO U = 1,NSUP 
-                    NEW=KINOP(BUP(U),J,K)
+                    NEW=KINOP(NORB,BUP(U),J,K)
                     IF (NEW>0) THEN
                         POS=0
                         DO L1 = 1,NSUP 
@@ -47,7 +46,9 @@ SUBROUTINE HPROD(V,V1)
                             ENDIF
                         ENDDO
                         IF (POS>0) THEN
-                            AC=ANTICOM(NORB,J,BUP(U),K,NEW)
+                            AC=ANTICOM(NORB,J,BUP(U))
+                            AC=AC*ANTICOM(NORB,K,NEW)
+!                            AC=ANTICOM(NORB,J,BUP(U),K,NEW)
                             IF (NUP .EQ. NDOWN) THEN
                                 DO D = 1,NSDOWN
                                     V1((D-1)*NSUP+POS)=V1((D-1)*NSUP+POS)+AC*V((D-1)*NSUP+U)*T(J,K)
@@ -64,7 +65,7 @@ SUBROUTINE HPROD(V,V1)
                                         IF (ABS(UL(J,K,M,N)) .GE. 1.E-14) THEN
                                             DO D = 1,NSDOWN
                                                 ! --- KINETIC DOWN
-                                                NEW2=KINOP(BDOWN(D),M,N)
+                                                NEW2=KINOP(NORB,BDOWN(D),M,N)
                                                 IF (NEW2>0) THEN
                                                     POS2=0
                                                     DO L2 = 1,NSDOWN
@@ -74,7 +75,9 @@ SUBROUTINE HPROD(V,V1)
                                                         ENDIF
                                                     ENDDO
                                                     IF (POS2>0) THEN
-                                                        AC2=ANTICOM(NORB,M,BDOWN(D),N,NEW2)
+                                                        AC2=ANTICOM(NORB,M,BDOWN(D))
+                                                        AC2=AC2*ANTICOM(NORB,N,NEW2)
+!                                                        AC2=ANTICOM(NORB,M,BDOWN(D),N,NEW2)
                                                         V1((POS2-1)*NSUP+POS) = V1((POS2-1)*NSUP+POS)+&
                                                         AC*AC2*V((D-1)*NSUP+U)*UL(J,K,M,N)
                                                     ENDIF
@@ -89,7 +92,7 @@ SUBROUTINE HPROD(V,V1)
                 ENDDO
                 IF (NUP .NE. NDOWN) THEN
                     DO D = 1,NSDOWN
-                        NEW=KINOP(BDOWN(D),J,K)
+                        NEW=KINOP(NORB,BDOWN(D),J,K)
                         IF (NEW>0) THEN
                             POS=0
                             DO L1 = 1,NSDOWN 
@@ -99,7 +102,9 @@ SUBROUTINE HPROD(V,V1)
                                 ENDIF
                             ENDDO
                             IF (POS>0) THEN
-                                AC=ANTICOM(NORB,J,BDOWN(D),K,NEW)
+                                AC=ANTICOM(NORB,J,BDOWN(D))
+                                AC=AC*ANTICOM(NORB,K,NEW)
+!                                AC=ANTICOM(NORB,J,BDOWN(D),K,NEW)
                                 DO U = 1,NSUP
                                     V1((POS-1)*NSUP+U)=V1((POS-1)*NSUP+U)+AC*V((D-1)*NSUP+U)*T(J,K)
                                 ENDDO
@@ -140,7 +145,7 @@ SUBROUTINE HPROD(V,V1)
 !                         ! V1((D-1)*NSUP+U)=V1((D-1)*NSUP+U)+V((D-1)*NSUP+U)*J_MATRIX(I,J)*&
 !                         ! (SZ_J(BUP(U),I)-SZ_J(BDOWN(D),I))*(SZ_J(BUP(U),J)-SZ_J(BDOWN(D),J))
 !                     ENDDO
-!                     NEW=KINOP(BUP(U),I,J)
+!                     NEW=KINOP(NORB,BUP(U),I,J)
 !                     IF (NEW>0) THEN
 !                         POS=0
 !                         DO TMP = 1,NSUP 
@@ -154,7 +159,7 @@ SUBROUTINE HPROD(V,V1)
 !                             DO D = 1,NSDOWN 
 !                                 V1((D-1)*NSUP+POS)=V1((D-1)*NSUP+POS)+AC*V((D-1)*NSUP+U)*T(I,J)
 !                                 IF (I .NE. J .AND. ABS(J_MATRIX(I,J)) .GE. 1.E-14) THEN
-!                                     NEW2=KINOP(BDOWN(D),J,I)
+!                                     NEW2=KINOP(NORB,BDOWN(D),J,I)
 !                                     IF (NEW2>0) THEN
 !                                         POS2=0
 !                                         DO TMP = 1,NSDOWN 
@@ -174,7 +179,7 @@ SUBROUTINE HPROD(V,V1)
 !                                     DO K = 1,NORB
 !                                         DO L = 1,NORB
 !                                             IF (ABS(UL(I,J,K,L)) .GT. 1.E-14) THEN
-!                                                 NEW2=KINOP(BDOWN(D),K,L)
+!                                                 NEW2=KINOP(NORB,BDOWN(D),K,L)
 !                                                 IF (NEW2>0) THEN
 !                                                     POS2=0
 !                                                     DO TMP = 1,NSDOWN
@@ -204,7 +209,7 @@ SUBROUTINE HPROD(V,V1)
 !         DO D = 1,NSDOWN
 !             DO I = 1,NORB
 !                 DO J=1,NORB
-!                     NEW=KINOP(BDOWN(D),I,J)
+!                     NEW=KINOP(NORB,BDOWN(D),I,J)
 !                     IF (NEW>0) THEN
 !                         POS=0
 !                         DO TMP = 1,NSDOWN
@@ -238,7 +243,7 @@ SUBROUTINE HPROD(V,V1)
 !                         ! V1((D-1)*NSUP+U)=V1((D-1)*NSUP+U)+V((D-1)*NSUP+U)*J_MATRIX(I,J)*&
 !                         ! (SZ_J(BUP(U),I)-SZ_J(BDOWN(D),I))*(SZ_J(BUP(U),J)-SZ_J(BDOWN(D),J))
 !                     ENDDO
-!                     NEW=KINOP(BUP(U),I,J)
+!                     NEW=KINOP(NORB,BUP(U),I,J)
 !                     IF (NEW>0) THEN
 !                         POS=0
 !                         DO TMP = 1,NSUP 
@@ -253,7 +258,7 @@ SUBROUTINE HPROD(V,V1)
 !                                 V1((D-1)*NSUP+POS)=V1((D-1)*NSUP+POS)+AC*V((D-1)*NSUP+U)*T(I,J)
 !                                 V1((POS-1)*NSUP+D)=V1((POS-1)*NSUP+D)+AC*V((U-1)*NSUP+D)*T(I,J)
 !                                 IF (I .NE. J .AND. ABS(J_MATRIX(I,J)) .GE. 1.E-14) THEN
-!                                     NEW2=KINOP(BDOWN(D),J,I)
+!                                     NEW2=KINOP(NORB,BDOWN(D),J,I)
 !                                     IF (NEW2>0) THEN
 !                                         POS2=0
 !                                         DO TMP = 1,NSDOWN 
@@ -273,7 +278,7 @@ SUBROUTINE HPROD(V,V1)
 !                                     DO K = 1,NORB
 !                                         DO L = 1,NORB
 !                                             IF (ABS(UL(I,J,K,L)) .GT. 1.E-14) THEN
-!                                                 NEW2=KINOP(BDOWN(D),K,L)
+!                                                 NEW2=KINOP(NORB,BDOWN(D),K,L)
 !                                                 IF (NEW2>0) THEN
 !                                                     POS2=0
 !                                                     DO TMP = 1,NSDOWN
@@ -312,17 +317,15 @@ SUBROUTINE TPROD(V,V1)
     IMPLICIT NONE
     REAL*8, INTENT(IN) :: V(NSTATES)
     REAL*8 :: V1(NSTATES)
-    INTEGER :: I,J,K,L1,NEW,POS,A,A2
+    INTEGER :: I,J,K,L1,NEW,POS
     REAL*8 :: AC
     DO J = 1,NORB
-        A=ISHFT(1,J-1)
         DO K=1,NORB
-            A2=ISHFT(1,K-1)
             ! --- ELECTRON UP
             IF (ABS(T(J,K)) .GE. 1.E-14) THEN
                 DO I = 1,NSUP
                     ! --- KINETIC UP
-                    NEW=KINOP(BUP(I),J,K)
+                    NEW=KINOP(NORB,BUP(I),J,K)
                     IF (NEW>0) THEN
                         POS=0
                         DO L1 = 1,NSUP 
@@ -332,7 +335,9 @@ SUBROUTINE TPROD(V,V1)
                             ENDIF
                         ENDDO
                         IF (POS>0) THEN
-                            AC=ANTICOM(NORB,J,BUP(I),K,NEW)
+                            AC=ANTICOM(NORB,J,BUP(I))
+                            AC=AC*ANTICOM(NORB,K,NEW)
+!                            AC=ANTICOM(NORB,J,BUP(I),K,NEW)
                             DO L1 = 1,NSDOWN 
                                 V1((L1-1)*NSUP+POS)=V1((L1-1)*NSUP+POS)+AC*V((L1-1)*NSUP+I)*T(J,K)
                             ENDDO
@@ -344,7 +349,7 @@ SUBROUTINE TPROD(V,V1)
             IF (ABS(T(J,K)) .GE. 1.E-14) THEN
                 DO L1 = 1,NSDOWN
                 ! --- KINETIC DOWN
-                    NEW=KINOP(BDOWN(L1),J,K)
+                    NEW=KINOP(NORB,BDOWN(L1),J,K)
                     IF (NEW>0) THEN
                         POS=0
                         DO I = 1,NSDOWN 
@@ -354,7 +359,9 @@ SUBROUTINE TPROD(V,V1)
                             ENDIF
                         ENDDO
                         IF (POS>0) THEN
-                            AC=ANTICOM(NORB,J,BDOWN(L1),K,NEW)
+                            AC=ANTICOM(NORB,J,BDOWN(L1))
+                            AC=AC*ANTICOM(NORB,K,NEW)
+!                            AC=ANTICOM(NORB,J,BDOWN(L1),K,NEW)
                             DO I = 1,NSUP 
                                 V1((POS-1)*NSUP+I)=V1((POS-1)*NSUP+I)+AC*V((L1-1)*NSUP+I)*T(J,K)
                             ENDDO
@@ -374,7 +381,7 @@ SUBROUTINE UPROD(V,V1)
     IMPLICIT NONE
     REAL*8, INTENT(IN) :: V(NSTATES)
     REAL*8 :: V1(NSTATES)
-    INTEGER :: I,J,K,M,N,L1,L2,NEW,NEW2,POS,POS2,A,U,D, NDBL
+    INTEGER :: I,J,K,M,N,L1,L2,NEW,NEW2,POS,POS2,U,D, NDBL
     REAL*8 :: AC,AC2
     DO J = 1,NORB
         IF (IS_ULOC .EQ. 3) THEN
@@ -384,7 +391,7 @@ SUBROUTINE UPROD(V,V1)
                         IF (ABS(UL(J,K,M,N)) .GE. 1.E-14) THEN
                             DO I = 1,NSUP
                                 ! --- KINETIC UP
-                                NEW=KINOP(BUP(I),J,K)
+                                NEW=KINOP(NORB,BUP(I),J,K)
                                 IF (NEW>0) THEN
                                     POS=0
                                     DO L2 = 1,NSUP 
@@ -394,10 +401,12 @@ SUBROUTINE UPROD(V,V1)
                                         ENDIF
                                     ENDDO
                                     IF (POS>0) THEN
-                                        AC=ANTICOM(NORB,J,BUP(I),K,NEW)
+                                        AC=ANTICOM(NORB,J,BUP(I))
+                                        AC=AC*ANTICOM(NORB,K,NEW)
+!                                        AC=ANTICOM(NORB,J,BUP(I),K,NEW)
                                         DO L1 = 1,NSDOWN
                                             ! --- KINETIC DOWN
-                                            NEW2=KINOP(BDOWN(L1),M,N)
+                                            NEW2=KINOP(NORB,BDOWN(L1),M,N)
                                             IF (NEW2>0) THEN
                                                 POS2=0
                                                 DO L2 = 1,NSDOWN
@@ -407,9 +416,11 @@ SUBROUTINE UPROD(V,V1)
                                                     ENDIF
                                                 ENDDO
                                                 IF (POS2>0) THEN
-                                                    AC2=ANTICOM(NORB,M,BDOWN(L1),N,NEW2)
+                                                    AC2=ANTICOM(NORB,M,BDOWN(L1))
+                                                    AC2=AC2*ANTICOM(NORB,N,NEW2)
+!                                                    AC2=ANTICOM(NORB,M,BDOWN(L1),N,NEW2)
                                                     V1((POS2-1)*NSUP+POS) = V1((POS2-1)*NSUP+POS)+&
-                                                    AC*AC2*V((L1-1)*NSUP+I)*UL(J,K,M,N)
+                                                    AC*AC2**V((L1-1)*NSUP+I)*UL(J,K,M,N)
                                                 ENDIF
                                             ENDIF
                                         ENDDO
@@ -421,11 +432,10 @@ SUBROUTINE UPROD(V,V1)
                 ENDDO
             ENDDO
         else IF (IS_ULOC .EQ. 2) THEN
-            A = ISHFT(1,J-1)
             DO U = 1,NSUP 
-                IF (IAND(BUP(U),A) .EQ. A) THEN
+                IF (IS_PART(NORB,J,BUP(U))) THEN
                     DO D = 1,NSDOWN
-                        IF (IAND(BDOWN(D),A) .EQ. A) &
+                        IF (IS_PART(NORB,J,BDOWN(D))) &
                         V1((D-1)*NSUP+U)=V1((D-1)*NSUP+U)+V((D-1)*NSUP+U)*ULDIAG(J)
                     ENDDO 
                 ENDIF 
@@ -437,8 +447,7 @@ SUBROUTINE UPROD(V,V1)
             DO D = 1,NSDOWN
                 NDBL = 0
                 DO J = 1,NORB
-                    A=ISHFT(1,J-1)
-                    IF (((IAND(BUP(U),A) .EQ. A) .AND. (IAND(BDOWN(D),A) .EQ. A))) NDBL=NDBL+1
+                    IF (IS_PART(NORB,J,BUP(U)) .AND. IS_PART(NORB,J,BDOWN(D))) NDBL=NDBL+1
                 ENDDO
                 V1((D-1)*NSUP+U)=V1((D-1)*NSUP+U)+V((D-1)*NSUP+U)*NDBL*U_FLOAT
             ENDDO
@@ -454,27 +463,26 @@ SUBROUTINE JPROD(V,V1)
     IMPLICIT NONE
     REAL*8, INTENT(IN) :: V(NSTATES)
     REAL*8 :: V1(NSTATES)
-    INTEGER :: I,J,K,L1,L2,NEW,NEW2,POS,POS2,A
+    INTEGER :: I,J,K,L1,L2,NEW,NEW2,POS,POS2
     REAL*8 :: AC, AC2
     DO J = 1,NORB
-        A=ISHFT(1,J-1)
         DO K=1,NORB
-            IF (J .EQ. K .AND. ABS(J_MATRIX(J,J)) .GE. 1.E-14) THEN
-                ! --- J*0.5* n_i\uparrow(1 - ni_\downarrow) + J*0.5* n_i\downarrow(1 - ni_\uparrow)
+            IF (J .EQ. K .AND. ABS(J_MATRIX(J,K))>1.E-14) THEN
+                ! --- 0.5* n_i\uparrow(1 - ni_\downarrow) + 0.5* n_i\downarrow(1 - ni_\uparrow)
                 DO I = 1,NSUP
                     DO L1 = 1,NSDOWN 
-                        IF (IAND(BUP(I),A) .EQ. A .AND. IAND(BDOWN(L1),A) .EQ. 0) &
+                        IF (IS_PART(NORB,J,BUP(I)) .AND. .NOT. IS_PART(NORB,J,BDOWN(L1))) &
                         V1((L1-1)*NSUP+I)=V1((L1-1)*NSUP+I)+V((L1-1)*NSUP+I)*0.5*J_MATRIX(J,J)
-                        IF (IAND(BUP(I),A) .EQ. 0 .AND. IAND(BDOWN(L1),A) .EQ. A) &
+                        IF (.NOT. IS_PART(NORB,J,BUP(I)) .AND. IS_PART(NORB,J,BDOWN(L1))) &
                         V1((L1-1)*NSUP+I)=V1((L1-1)*NSUP+I)+V((L1-1)*NSUP+I)*0.5*J_MATRIX(J,J)
                     ENDDO
                 ENDDO
-            ELSE IF (J .NE. K .AND. ABS(J_MATRIX(J,K)) .GE. 1.E-14) THEN
-                ! --- SPIN 0.5*S^+KS^-J--- !
-                ! --- = -J*0.5*c^\dagger_j\downarrow c_k\downarrow c^\dagger_k\uparrow  c_j\uparrow
+            ELSE IF (ABS(J_MATRIX(J,K))>1.E-14) THEN
+                ! --- SPIN 0.5*\sum_JK (S^+KS^-J+S^-KS^+J) = \sum_JK S^+KS^-J--- !
+                ! --- = \sum_JK  -c^\dagger_j\downarrow c_k\downarrow c^\dagger_k\uparrow  c_j\uparrow
                 DO I = 1,NSUP
                     ! --- KINETIC UP
-                    NEW=KINOP(BUP(I),J,K)
+                    NEW=KINOP(NORB,BUP(I),J,K)
                     IF (NEW>0) THEN
                         POS=0
                         DO L2 = 1,NSUP 
@@ -484,9 +492,11 @@ SUBROUTINE JPROD(V,V1)
                             ENDIF
                         ENDDO
                         IF (POS>0) THEN
-                            AC=ANTICOM(NORB,J,BUP(I),K,NEW)
+                            AC=ANTICOM(NORB,J,BUP(I))
+                            AC=AC*ANTICOM(NORB,K,NEW)
+!                            AC=ANTICOM(NORB,J,BUP(I),K,NEW)
                             DO L1 = 1,NSDOWN 
-                                NEW2=KINOP(BDOWN(L1),K,J)
+                                NEW2=KINOP(NORB,BDOWN(L1),K,J)
                                 IF (NEW2>0) THEN
                                     POS2=0
                                     DO L2 = 1,NSDOWN 
@@ -496,9 +506,11 @@ SUBROUTINE JPROD(V,V1)
                                         ENDIF
                                     ENDDO
                                     IF (POS2>0) THEN
-                                        AC2=ANTICOM(NORB,K,BDOWN(L1),J,NEW2)
+                                        AC2=ANTICOM(NORB,K,BDOWN(L1))
+                                        AC2=AC2*ANTICOM(NORB,J,NEW2)
+!                                        AC2=ANTICOM(NORB,K,BDOWN(L1),J,NEW2)
                                         V1((POS2-1)*NSUP+POS)=V1((POS2-1)*NSUP+POS)-&
-                                        AC*AC2*V((L1-1)*NSUP+I)*J_MATRIX(J,K)
+                                         AC*AC2*V((L1-1)*NSUP+I)*J_MATRIX(J,K)
                                     ENDIF
                                 ENDIF
                             ENDDO
@@ -506,14 +518,14 @@ SUBROUTINE JPROD(V,V1)
                     ENDIF
                 ENDDO
             ENDIF
-            ! IF (ABS(J_MATRIX(J,K)) .GE. 1.E-14) THEN
-            !     DO I = 1,NSUP 
-            !         DO L1 = 1,NSDOWN
-            !             V1((L1-1)*NSUP+I)=V1((L1-1)*NSUP+I)+V((L1-1)*NSUP+I)*J_MATRIX(J,K)*&
-            !             (SZ_J(BUP(I),J)-SZ_J(BDOWN(L1),J))*(SZ_J(BUP(I),K)-SZ_J(BDOWN(L1),K))
-            !         ENDDO
-            !     ENDDO
-            ! ENDIF
+            IF (ABS(J_MATRIX(J,K))>1.E-14) THEN
+                DO I = 1,NSUP 
+                    DO L1 = 1,NSDOWN
+                        V1((L1-1)*NSUP+I)=V1((L1-1)*NSUP+I)+V((L1-1)*NSUP+I)*J_MATRIX(J,K)*&
+                        SZ(NORB,J,BUP(I),BDOWN(L1))*SZ(NORB,K,BUP(I),BDOWN(L1))
+                    ENDDO
+                ENDDO
+            ENDIF
         ENDDO
     ENDDO
     RETURN

@@ -164,7 +164,7 @@ SUBROUTINE ONE_RDM(BRA,KET,DENS_MAT)
                 DENS_MAT(J,K,1) = 0.
                 DO I = 1,NSUP
                     ! --- KINETIC UP
-                    NEW=KINOP(BUP(I),J,K)
+                    NEW=KINOP(NORB,BUP(I),J,K)
                     IF (NEW>0) THEN
                         POS=0
                         DO L1 = 1,NSUP 
@@ -174,7 +174,9 @@ SUBROUTINE ONE_RDM(BRA,KET,DENS_MAT)
                             ENDIF
                         ENDDO
                         IF (POS>0) THEN
-                            AC=ANTICOM(NORB,J,BUP(I),K,NEW)
+                            AC=ANTICOM(NORB,J,BUP(I))
+                            AC=AC*ANTICOM(NORB,K,NEW)
+!                            AC=ANTICOM(NORB,J,BUP(I),K,NEW)
                             DO L1 = 1,NSDOWN 
                                 DENS_MAT(J,K,1)=DENS_MAT(J,K,1)+AC*BRA((L1-1)*NSUP+I)*KET((L1-1)*NSUP+POS)
                             ENDDO
@@ -185,7 +187,7 @@ SUBROUTINE ONE_RDM(BRA,KET,DENS_MAT)
                 DENS_MAT(J,K,2) = 0.
                 DO L1 = 1,NSDOWN
                 ! --- KINETIC DOWN
-                    NEW=KINOP(BDOWN(L1),J,K)
+                    NEW=KINOP(NORB,BDOWN(L1),J,K)
                     IF (NEW>0) THEN
                         POS=0
                         DO I = 1,NSDOWN 
@@ -195,7 +197,9 @@ SUBROUTINE ONE_RDM(BRA,KET,DENS_MAT)
                             ENDIF
                         ENDDO
                         IF (POS>0) THEN
-                            AC=ANTICOM(NORB,J,BDOWN(L1),K,NEW)
+                            AC=ANTICOM(NORB,J,BDOWN(L1))
+                            AC=AC*ANTICOM(NORB,K,NEW)
+!                            AC=ANTICOM(NORB,J,BDOWN(L1),K,NEW)
                             DO I = 1,NSUP 
                                 DENS_MAT(J,K,2)=DENS_MAT(J,K,2)+AC*BRA((L1-1)*NSUP+I)*KET((POS-1)*NSUP+I)
                             ENDDO
@@ -211,7 +215,7 @@ SUBROUTINE ONE_RDM(BRA,KET,DENS_MAT)
                 DENS_MAT(J,K,1) = 0.
                 DO I = 1,NSUP
                     ! --- KINETIC UP
-                    NEW=KINOP(BUP(I),J,K)
+                    NEW=KINOP(NORB,BUP(I),J,K)
                     IF (NEW>0) THEN
                         POS=0
                         DO L1 = 1,NSUP 
@@ -221,7 +225,9 @@ SUBROUTINE ONE_RDM(BRA,KET,DENS_MAT)
                             ENDIF
                         ENDDO
                         IF (POS>0) THEN
-                            AC=ANTICOM(NORB,J,BUP(I),K,NEW)
+                            AC=ANTICOM(NORB,J,BUP(I))
+                            AC=AC*ANTICOM(NORB,K,NEW)
+!                            AC=ANTICOM(NORB,J,BUP(I),K,NEW)
                             DO L1 = 1,NSDOWN 
                                 DENS_MAT(J,K,1)=DENS_MAT(J,K,1)+AC*BRA((L1-1)*NSUP+I)*KET((L1-1)*NSUP+POS)
                             ENDDO
@@ -254,7 +260,7 @@ SUBROUTINE TWO_RDM(BRA,KET,DBL_OCC,NI)
                         DBL_OCC(J,K,M,N) = 0.
                         DO I = 1,NSUP
                             ! --- KINETIC UP
-                            NEW=KINOP(BUP(I),J,K)
+                            NEW=KINOP(NORB,BUP(I),J,K)
                             IF (NEW>0) THEN
                                 POS=0
                                 DO L2 = 1,NSUP 
@@ -264,10 +270,12 @@ SUBROUTINE TWO_RDM(BRA,KET,DBL_OCC,NI)
                                     ENDIF
                                 ENDDO
                                 IF (POS>0) THEN
-                                    AC=ANTICOM(NORB,J,BUP(I),K,NEW)
+                                    AC=ANTICOM(NORB,J,BUP(I))
+                                    AC=AC*ANTICOM(NORB,K,NEW)
+!                                    AC=ANTICOM(NORB,J,BUP(I),K,NEW)
                                     DO L1 = 1,NSDOWN
                                         ! --- KINETIC DOWN
-                                        NEW2=KINOP(BDOWN(L1),M,N)
+                                        NEW2=KINOP(NORB,BDOWN(L1),M,N)
                                         IF (NEW2>0) THEN
                                             POS2=0
                                             DO L2 = 1,NSDOWN
@@ -277,7 +285,9 @@ SUBROUTINE TWO_RDM(BRA,KET,DBL_OCC,NI)
                                                 ENDIF
                                             ENDDO
                                             IF (POS2>0) THEN
-                                                AC2=ANTICOM(NORB,M,BDOWN(L1),N,NEW2)
+                                                AC2=ANTICOM(NORB,M,BDOWN(L1))
+                                                AC2=AC2*ANTICOM(NORB,N,NEW2)
+!                                                AC2=ANTICOM(NORB,M,BDOWN(L1),N,NEW2)
                                                 DBL_OCC(J,K,M,N) = DBL_OCC(J,K,M,N)+&
                                                 AC*AC2*BRA((L1-1)*NSUP+I)*KET((POS2-1)*NSUP+POS)
                                             ENDIF
@@ -296,11 +306,10 @@ SUBROUTINE TWO_RDM(BRA,KET,DBL_OCC,NI)
             ENDDO
         else
             NI(J) = 0.
-            A = ISHFT(1,J-1)
             DO U = 1,NSUP 
-                IF (IAND(BUP(U),A) .EQ. A) THEN
+                IF (IS_PART(NORB,J,BUP(U))) THEN
                     DO D = 1,NSDOWN
-                        IF (IAND(BDOWN(D),A) .EQ. A) &
+                        IF (IS_PART(NORB,J,BDOWN(D))) &
                         NI(J)=NI(J)+BRA((D-1)*NSUP+U)*KET((D-1)*NSUP+U)
                     ENDDO 
                 ENDIF 
@@ -317,19 +326,18 @@ SUBROUTINE J_SPIN(BRA,KET,SMATRIX)
     IMPLICIT NONE
     REAL*8,INTENT(IN) :: BRA(NSTATES),KET(NSTATES)
     REAL*8 :: SMATRIX(NORB,NORB)
-    INTEGER :: I,J,K,L1,L2,NEW,NEW2,POS,POS2,A
+    INTEGER :: I,J,K,L1,L2,NEW,NEW2,POS,POS2
     REAL*8 :: AC, AC2
     DO J = 1,NORB
-        A=ISHFT(1,J-1)
         DO K=1,J
             SMATRIX(J,K) = 0.
             IF (J .EQ. K) THEN
                 ! --- 0.5* n_i\uparrow(1 - ni_\downarrow) + 0.5* n_i\downarrow(1 - ni_\uparrow)
                 DO I = 1,NSUP
                     DO L1 = 1,NSDOWN 
-                        IF (IAND(BUP(I),A) .EQ. A .AND. IAND(BDOWN(L1),A) .EQ. 0) &
+                        IF (IS_PART(NORB,J,BUP(I)) .AND. .NOT. IS_PART(NORB,J,BDOWN(L1))) &
                         SMATRIX(J,J)=SMATRIX(J,J)+0.5*BRA((L1-1)*NSUP+I)*KET((L1-1)*NSUP+I)
-                        IF (IAND(BUP(I),A) .EQ. 0 .AND. IAND(BDOWN(L1),A) .EQ. A) &
+                        IF (.NOT. IS_PART(NORB,J,BUP(I)) .AND. IS_PART(NORB,J,BDOWN(L1))) &
                         SMATRIX(J,J)=SMATRIX(J,J)+0.5*BRA((L1-1)*NSUP+I)*KET((L1-1)*NSUP+I)
                     ENDDO
                 ENDDO
@@ -338,7 +346,7 @@ SUBROUTINE J_SPIN(BRA,KET,SMATRIX)
                 ! --- = \sum_JK  -c^\dagger_j\downarrow c_k\downarrow c^\dagger_k\uparrow  c_j\uparrow
                 DO I = 1,NSUP
                     ! --- KINETIC UP
-                    NEW=KINOP(BUP(I),J,K)
+                    NEW=KINOP(NORB,BUP(I),J,K)
                     IF (NEW>0) THEN
                         POS=0
                         DO L2 = 1,NSUP 
@@ -348,9 +356,11 @@ SUBROUTINE J_SPIN(BRA,KET,SMATRIX)
                             ENDIF
                         ENDDO
                         IF (POS>0) THEN
-                            AC=ANTICOM(NORB,J,BUP(I),K,NEW)
+                            AC=ANTICOM(NORB,J,BUP(I))
+                            AC=AC*ANTICOM(NORB,K,NEW)
+!                            AC=ANTICOM(NORB,J,BUP(I),K,NEW)
                             DO L1 = 1,NSDOWN 
-                                NEW2=KINOP(BDOWN(L1),K,J)
+                                NEW2=KINOP(NORB,BDOWN(L1),K,J)
                                 IF (NEW2>0) THEN
                                     POS2=0
                                     DO L2 = 1,NSDOWN 
@@ -360,7 +370,9 @@ SUBROUTINE J_SPIN(BRA,KET,SMATRIX)
                                         ENDIF
                                     ENDDO
                                     IF (POS2>0) THEN
-                                        AC2=ANTICOM(NORB,K,BDOWN(L1),J,NEW2)
+                                        AC2=ANTICOM(NORB,K,BDOWN(L1))
+                                        AC2=AC2*ANTICOM(NORB,J,NEW2)
+!                                        AC2=ANTICOM(NORB,K,BDOWN(L1),J,NEW2)
                                         SMATRIX(J,K)=SMATRIX(J,K)-&
                                         AC*AC2*BRA((L1-1)*NSUP+I)*KET((POS2-1)*NSUP+POS)
                                     ENDIF
@@ -373,7 +385,7 @@ SUBROUTINE J_SPIN(BRA,KET,SMATRIX)
             DO I = 1,NSUP 
                 DO L1 = 1,NSDOWN
                     SMATRIX(J,K)=SMATRIX(J,K)+BRA((L1-1)*NSUP+I)*KET((L1-1)*NSUP+I)*&
-                    (N_J(BUP(I),J)-N_J(BDOWN(L1),J))*(N_J(BUP(I),K)-N_J(BDOWN(L1),K))*0.25
+                    SZ(NORB,J,BUP(I),BDOWN(L1))*SZ(NORB,K,BUP(I),BDOWN(L1))
                 ENDDO
             ENDDO
             SMATRIX(K,J)=SMATRIX(J,K)

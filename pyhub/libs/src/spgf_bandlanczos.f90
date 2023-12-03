@@ -460,11 +460,12 @@ SUBROUTINE LCZ_E_UP(PSI_LCZ)
     PSI_LCZ = 0.
     DO POS = 1,NORB2COMP
         DO I = 1,NSUP_
-            A=ISHFT(1,POS-1)
-            IF (IAND(BUP_(I),A)==0) THEN
+            IF (.NOT. IS_PART(NORB,POS,BUP_(I))) THEN
+                A = CREATION(NORB,POS,BUP_(I))
                 DO J=1,NSUP
-                    IF (BUP(J)==BUP_(I)+A) THEN
-                        AC=ANTICOM2(NORB,BUP_(I),POS)
+                    IF (BUP(J)==A) THEN
+                        AC=ANTICOM(NORB,POS,BUP_(I))
+                        IF (MOD(NDOWN_,2)==1) AC = -AC
                         DO K = 1,NSDOWN
                             PSI_LCZ((K-1)*NSUP+J,POS)=AC*PSI((K-1)*NSUP_+I)
                         ENDDO
@@ -487,11 +488,11 @@ SUBROUTINE LCZ_E_DOWN(PSI_LCZ)
     PSI_LCZ = 0.
     DO POS = 1,NORB2COMP
         DO I = 1,NSDOWN_
-            A=ISHFT(1,POS-1)
-            IF (IAND(BDOWN_(I),A)==0) THEN
+            IF (.NOT. IS_PART(NORB,POS,BDOWN_(I))) THEN
+                A = CREATION(NORB,POS,BDOWN_(I))
                 DO J=1,NSDOWN
-                    IF (BDOWN_(I)+A==BDOWN(J)) THEN
-                        AC=ANTICOM2(NORB,BDOWN_(I),POS)
+                    IF (A==BDOWN(J)) THEN
+                        AC=ANTICOM(NORB,POS,BDOWN_(I))
                         DO K = 1,NSUP
                             PSI_LCZ((J-1)*NSUP+K,POS)=AC*PSI((I-1)*NSUP_+K)
                         ENDDO
@@ -514,11 +515,12 @@ SUBROUTINE LCZ_H_UP(PSI_LCZ)
     PSI_LCZ = 0.
     DO POS = 1,NORB2COMP
         DO I = 1,NSUP_
-            A=ISHFT(1,POS-1)
-            IF (IAND(BUP_(I),A)==A) THEN
+            IF (IS_PART(NORB,POS,BUP_(I))) THEN
+                A = ANNIHILATION(NORB,POS,BUP_(I))
                 DO J=1,NSUP
-                    IF (BUP(J)==BUP_(I)-A) THEN
-                        AC=ANTICOM2(NORB,BUP_(I),POS)
+                    IF (BUP(J)==A) THEN
+                        AC=ANTICOM(NORB,POS,BUP_(I))
+                        IF (MOD(NDOWN_,2)==1) AC = -AC
                         DO K = 1,NSDOWN
                             PSI_LCZ((K-1)*NSUP+J,POS)=AC*PSI((K-1)*NSUP_+I)
                         ENDDO
@@ -538,15 +540,15 @@ SUBROUTINE LCZ_H_DOWN(PSI_LCZ)
     IMPLICIT NONE
     REAL*8, INTENT(OUT) :: PSI_LCZ(NSTATES,NORB2COMP)
     REAL*8 :: AC
-    INTEGER*4 :: A,I,J,K,POS
+    INTEGER*4 :: I,J,K,A,POS
     PSI_LCZ = 0.
     DO POS = 1,NORB2COMP
         DO I = 1,NSDOWN_
-            A=ISHFT(1,POS-1)
-            IF (IAND(BDOWN_(I),A)==A) THEN
+            IF (IS_PART(NORB,POS,BDOWN_(I))) THEN
+                A=ANNIHILATION(NORB,POS,BDOWN_(I))
                 DO J=1,NSDOWN
-                    IF (BDOWN_(I)-A==BDOWN(J)) THEN
-                        AC=ANTICOM2(NORB,BDOWN_(I),POS)
+                    IF (A==BDOWN(J)) THEN
+                        AC=ANTICOM(NORB,POS,BDOWN_(I))
                         DO K = 1,NSUP
                             PSI_LCZ((J-1)*NSUP+K,POS)=AC*PSI((I-1)*NSUP_+K)
                         ENDDO

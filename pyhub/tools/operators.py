@@ -33,14 +33,14 @@ class _n(Operators):
         self.str_index = [['1_n']]
 
 
-# class sz(Operators):
+class sz(Operators):
 
-#     def __init__(self,*args):
-#         Operators.__init__(self,*args)
-#         self.str_index = [['sz']]
+    def __init__(self,*args):
+        Operators.__init__(self,*args)
+        self.str_index = [['sz']]
 
-def sz(*args):
-    return (n((args[0][0],'u')) - n((args[0][0],'d'))) / 2.
+# def sz(*args):
+#     return (n((args[0][0],'u')) - n((args[0][0],'d'))) / 2.
 
 # class sisj(Operators):
 
@@ -55,7 +55,8 @@ def sisj(*args):
     else:
         op -= ( c_dagger_c((args[0][0],'u'),(args[1][0],'u')) * c_dagger_c((args[1][0],'d'),(args[0][0],'d'))\
                  + c_dagger_c((args[0][0],'d'),(args[1][0],'d')) * c_dagger_c((args[1][0],'u'),(args[0][0],'u')) )/2
-    op += ((n((args[0][0],'u')) - n((args[0][0],'d'))) / 2.) * ((n((args[1][0],'u')) - n((args[1][0],'d'))) / 2.)
+#    op += ((n((args[0][0],'u')) - n((args[0][0],'d'))) / 2.) * ((n((args[1][0],'u')) - n((args[1][0],'d'))) / 2.)
+    op += sz((args[0][0],))*sz((args[1][0],))
     return op
 
 class splus(Operators):
