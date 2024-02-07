@@ -20,13 +20,15 @@ class Operators(Basis):
             add.coeff = self.coeff + other.coeff
             add.elem_index = self.elem_index + other.elem_index
             add.str_index = self.str_index + other.str_index
-            index = np.where(np.abs(add.coeff)<1.e-14)[0]
-            k=0
-            for i in index:
-                del add.coeff[i-k]
-                del add.elem_index[i-k]
-                del add.str_index[i-k]
-                k+=1
+            # index = np.where(np.abs(add.coeff)<1.e-14)[0]
+            # k=0
+            # for i in index:
+            #     del add.coeff[i-k]
+            #     del add.elem_index[i-k]
+            #     del add.str_index[i-k]
+            #     k+=1
+            #     if (len(add.elem_index)==1):
+            #         break
         elif isinstance(other,(float,int)):
             add = self + other*Operators._idt()
             return add
@@ -41,13 +43,15 @@ class Operators(Basis):
             sub.coeff = self.coeff + [-1.*c for c in other.coeff]
             sub.elem_index = self.elem_index + other.elem_index
             sub.str_index = self.str_index + other.str_index
-            index = np.where(np.abs(sub.coeff)<1.e-14)[0]
-            k=0
-            for i in index:
-                del sub.coeff[i-k]
-                del sub.elem_index[i-k]
-                del sub.str_index[i-k]
-                k+=1
+            # index = np.where(np.abs(sub.coeff)<1.e-14)[0]
+            # k=0
+            # for i in index:
+            #     del sub.coeff[i-k]
+            #     del sub.elem_index[i-k]
+            #     del sub.str_index[i-k]
+            #     k+=1
+            #     if (len(sub.elem_index)==1):
+            #         break
         elif isinstance(other,(float,int)):
             sub = self - other*Operators._idt()
             return sub
@@ -66,13 +70,15 @@ class Operators(Basis):
             mul.coeff = [other*c for c in self.coeff]
             mul.elem_index = self.elem_index
             mul.str_index = self.str_index
-            index = np.where(np.abs(mul.coeff)<1.e-14)[0]
-            k=0
-            for i in index:
-                del mul.coeff[i-k]
-                del mul.elem_index[i-k]
-                del mul.str_index[i-k]
-                k+=1
+            # index = np.where(np.abs(mul.coeff)<1.e-14)[0]
+            # k=0
+            # for i in index:
+            #     del mul.coeff[i-k]
+            #     del mul.elem_index[i-k]
+            #     del mul.str_index[i-k]
+            #     k+=1
+            #     if (len(mul.elem_index)==1):
+            #         break
             if not self.op2write:
                 mul.set_basis(Basis(self.nb_sites,self.hilbert,self.order))
                 mul.selected = self.selected
